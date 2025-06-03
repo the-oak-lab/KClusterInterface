@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - KC Analysis Platform{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h2>
+            <a href="{% url 'upload_questions' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>New Analysis
+            </a>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h6>Total Tasks</h6>
+                                <h3>{{ total_tasks }}</h3>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-tasks fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h6>Completed</h6>
+                                <h3>{{ completed_tasks }}</h3>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-check-circle fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h6>Processing</h6>
+                                <h3>{{ processing_tasks }}</h3>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-spinner fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card bg-danger text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h6>Failed</h6>
+                                <h3>{{ failed_tasks }}</h3>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-exclamation-triangle fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tasks Table -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Recent Tasks</h5>
+            </div>
+            <div class="card-body">
+                {% if page_obj %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>File</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Completed</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for task in page_obj %}
+                                    <tr class="task-row" data-task-id="{{ task.id }}">
+                                        <td>{{ task.id }}</td>
+                                        <td>
+                                            <i class="fas fa-file me-2"></i>{{ task.filename }}
+                                        </td>
+                                        <td>
+                                            {% if task.status == 'completed' %}
+                                                <span class="badge bg-success status-badge">
+                                                    <i class="fas fa-check me-1"></i>Completed
+                                                </span>
+                                            {% elif task.status == 'processing' %}
+                                                <span class="badge bg-warning status-badge">
+                                                    <i class="fas fa-spinner fa-spin me-1"></i>Processing
+                                                </span>
+                                            {% elif task.status == 'queued' %}
+                                                <span class="badge bg-info status-badge">
+                                                    <i class="fas fa-clock me-1"></i>Queued
+                                                </span>
+                                            {% elif task.status == 'failed' %}
+                                                <span class="badge bg-danger status-badge">
+                                                    <i class="fas fa-times me-1"></i>Failed
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ task.created_at|date:"M d, Y H:i" }}</td>
+                                        <td>
+                                            {% if task.completed_at %}
+                                                {{ task.completed_at|date:"M d, Y H:i" }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'task_status' task.id %}" class="btn btn-outline-primary">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                {% if task.status == 'completed' and task.output_csv %}
+                                                    <a href="{% url 'download_results' task.id %}" class="btn btn-outline-success">
+                                                        <i class="fas fa-download"></i>
+                                                    </a>
+                                                    <a href="{% url 'next_steps' task.id %}" class="btn btn-outline-info">
+                                                        <i class="fas fa-arrow-right"></i>
+                                                    </a>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if page_obj.has_other_pages %}
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                                    </li>
+                                {% endif %}
+                                
+                                <li class="page-item active">
+                                    <span class="page-link">
+                                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                                    </span>
+                                </li>
+                                
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h5>No tasks yet</h5>
+                        <p class="text-muted">Upload your first set of questions to get started!</p>
+                        <a href="{% url 'upload_questions' %}" class="btn btn-primary">
+                            <i class="fas fa-upload me-2"></i>Upload Questions
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Auto-refresh dashboard every 30 seconds for processing tasks
+document.addEventListener('DOMContentLoaded', function() {
+    const processingTasks = document.querySelectorAll('.badge.bg-warning, .badge.bg-info');
+    if (processingTasks.length > 0) {
+        setTimeout(() => {
+            location.reload();
+        }, 30000);
+    }
+});
+</script>
+{% endblock %}

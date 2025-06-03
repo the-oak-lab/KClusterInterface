@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Welcome - KC Analysis Platform{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Hero Section -->
+        <div class="hero-section text-white text-center py-5 mb-5" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <div class="container">
+                <h1 class="display-4 fw-bold mb-4">
+                    <i class="fas fa-brain me-3"></i>Knowledge Component Analysis Platform
+                </h1>
+                <p class="lead mb-4">
+                    Automatically identify Knowledge Components in your educational questions using advanced AI algorithms.
+                </p>
+                {% if not user.is_authenticated %}
+                    <div class="mt-4">
+                        <a href="{% url 'register' %}" class="btn btn-light btn-lg me-3">
+                            <i class="fas fa-user-plus me-2"></i>Get Started
+                        </a>
+                        <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-sign-in-alt me-2"></i>Login
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="mt-4">
+                        <a href="{% url 'upload_questions' %}" class="btn btn-light btn-lg me-3">
+                            <i class="fas fa-upload me-2"></i>Upload Questions
+                        </a>
+                        <a href="{% url 'dashboard' %}" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="mb-3">
+                                <i class="fas fa-upload fa-3x text-primary"></i>
+                            </div>
+                            <h5 class="card-title">Easy Upload</h5>
+                            <p class="card-text">
+                                Upload your questions in CSV, Excel, or JSON format. 
+                                Our platform supports multiple file types for your convenience.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="mb-3">
+                                <i class="fas fa-cogs fa-3x text-success"></i>
+                            </div>
+                            <h5 class="card-title">AI Processing</h5>
+                            <p class="card-text">
+                                Advanced algorithms analyze your questions to automatically 
+                                identify Knowledge Components with high accuracy.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="mb-3">
+                                <i class="fas fa-download fa-3x text-info"></i>
+                            </div>
+                            <h5 class="card-title">Download Results</h5>
+                            <p class="card-text">
+                                Get your results as a CSV file with original questions 
+                                plus identified Knowledge Components ready for use.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- How it Works -->
+            <div class="row mt-5">
+                <div class="col-12">
+                    <h2 class="text-center mb-4">How It Works</h2>
+                    <div class="row">
+                        <div class="col-md-3 text-center mb-4">
+                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <span class="fw-bold">1</span>
+                            </div>
+                            <h6>Register Account</h6>
+                            <p class="text-muted">Create your teacher account</p>
+                        </div>
+                        <div class="col-md-3 text-center mb-4">
+                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <span class="fw-bold">2</span>
+                            </div>
+                            <h6>Upload Questions</h6>
+                            <p class="text-muted">Upload your question file</p>
+                        </div>
+                        <div class="col-md-3 text-center mb-4">
+                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <span class="fw-bold">3</span>
+                            </div>
+                            <h6>AI Analysis</h6>
+                            <p class="text-muted">Our AI identifies KCs</p>
+                        </div>
+                        <div class="col-md-3 text-center mb-4">
+                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <span class="fw-bold">4</span>
+                            </div>
+                            <h6>Download Results</h6>
+                            <p class="text-muted">Get your KC analysis</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

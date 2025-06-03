@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+
+{% block title %}Next Steps - KC Analysis Platform{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-rocket me-2"></i>Next Steps - Task #{{ task.id }}
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-success mb-4">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <strong>Congratulations!</strong> Your Knowledge Component analysis is complete.
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-info-circle me-2"></i>Analysis Summary</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>File:</strong> {{ task.filename }}</li>
+                            <li><strong>Completed:</strong> {{ task.completed_at|date:"M d, Y H:i" }}</li>
+                            <li><strong>Status:</strong> <span class="badge bg-success">Completed</span></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-download me-2"></i>Available Downloads</h6>
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'download_results' task.id %}" class="btn btn-success">
+                                <i class="fas fa-file-csv me-2"></i>Download KC Results (CSV)
+                            </a>
+                            {% if kc_model.model_file %}
+                                <a href="{{ kc_model.model_file.url }}" class="btn btn-info" download>
+                                    <i class="fas fa-brain me-2"></i>Download KC Model
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Next Steps Options -->
+                <div class="row">
+                    <div class="col-12">
+                        <h5 class="mb-3">What would you like to do next?</h5>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <!-- Option 1: Analyze More Questions -->
+                    <div class="col-lg-4">
+                        <div class="card h-100 border-primary">
+                            <div class="card-body text-center">
+                                <div class="mb-3">
+                                    <i class="fas fa-plus-circle fa-3x text-primary"></i>
+                                </div>
+                                <h6 class="card-title">Analyze More Questions</h6>
+                                <p class="card-text small">
+                                    Upload another set of questions for KC analysis.
+                                </p>
+                                <a href="{% url 'upload_questions' %}" class="btn btn-primary">
+                                    <i class="fas fa-upload me-2"></i>Upload New File
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Option 2: Integration with DataShop -->
+                    <div class="col-lg-4">
+                        <div class="card h-100 border-info">
+                            <div class="card-body text-center">
+                                <div class="mb-3">
+                                    <i class="fas fa-database fa-3x text-info"></i>
+                                </div>
+                                <h6 class="card-title">DataShop Integration</h6>
+                                <p class="card-text small">
+                                    Import your KC results into DataShop for further analysis.
+                                </p>
+                                <button class="btn btn-info" onclick="showDataShopModal()">
+                                    <i class="fas fa-external-link-alt me-2"></i>Connect to DataShop
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Option 3: View Dashboard -->
+                    <div class="col-lg-4">
+                        <div class="card h-100 border-secondary">
+                            <div class="card-body text-center">
+                                <div class="mb-3">
+                                    <i class="fas fa-tachometer-alt fa-3x text-secondary"></i>
+                                </div>
+                                <h6 class="card-title">View All Tasks</h6>
+                                <p class="card-text small">
+                                    Return to your dashboard to see all analysis tasks.
+                                </p>
+                                <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Go to Dashboard
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Usage Tips -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Tips for Using Your KC Results</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Understanding Your Results</h6>
+                                <ul class="small">
+                                    <li>Each question now has an identified Knowledge Component</li>
+                                    <li>KC labels help organize questions by cognitive skills</li>
+                                    <li>Use KCs to track student learning progression</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Best Practices</h6>
+                                <ul class="small">
+                                    <li>Review KC assignments for accuracy</li>
+                                    <li>Group questions by KC for targeted practice</li>
+                                    <li>Monitor student performance per KC</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DataShop Integration Modal -->
+<div class="modal fade" id="dataShopModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-database me-2"></i>DataShop Integration
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Coming Soon!</strong> DataShop integration is currently under development.
+                </div>
+                
+                <h6>What is DataShop?</h6>
+                <p class="small">
+                    DataShop is a repository for learning interaction data that supports research in 
+                    the learning sciences. It allows researchers to upload, share, and analyze 
+                    educational data.
+                </p>
+                
+                <h6>Integration Features (Planned)</h6>
+                <ul class="small">
+                    <li>Direct export of KC results to DataShop format</li>
+                    <li>Automated dataset creation with KC mappings</li>
+                    <li>Integration with existing DataShop workflows</li>
+                </ul>
+                
+                <h6>Current Workaround</h6>
+                <p class="small">
+                    You can manually import your CSV results into DataShop by following their 
+                    data formatting guidelines.
+                </p>
+                
+                <div class="text-center mt-3">
+                    <a href="https://pslcdatashop.web.cmu.edu/" target="_blank" class="btn btn-outline-info">
+                        <i class="fas fa-external-link-alt me-2"></i>Visit DataShop
+                    </a>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function showDataShopModal() {
+    const modal = new bootstrap.Modal(document.getElementById('dataShopModal'));
+    modal.show();
+}
+</script>
+{% endblock %}

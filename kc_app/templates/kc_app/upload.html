@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Upload Questions - KC Analysis Platform{% endblock %}
+
+{% block head %}
+{% load static %}
+<link rel="stylesheet" href=" {% static 'kc_app/css/upload.css' %}">
+<script src="{% static 'kc_app/js/upload.js' %}" type="text/javascript"></script>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-upload me-2"></i>Upload Questions for KC Analysis
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <h6>Supported File Formats:</h6>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-file-csv text-success me-2"></i>CSV files (.csv)</li>
+                        <li><i class="fas fa-file-excel text-success me-2"></i>Excel files (.xlsx, .xls)</li>
+                        <li><i class="fas fa-file-code text-success me-2"></i>JSON files (.json)</li>
+                        <li><i class="fas fa-file-code text-info me-2"></i>JSONL files (.jsonl)</li>
+                    </ul>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" id="uploadForm">
+                    {% csrf_token %}
+                    
+                    <!-- <div class="mb-4">
+                        <label class="form-label fw-bold">File Format</label>
+                        {{ form.file_format }}
+                        <div class="form-text">{{ form.file_format.help_text }}</div>
+                    </div> -->
+
+                    <div class="mb-4">
+                        <label for="{{ form.uploaded_file.id_for_label }}" class="form-label fw-bold">Upload File</label>
+                        <div class="file-upload-area" id="fileUploadArea">
+                            <button type="button" class="remove-file" id="removeFileBtn">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            
+                            <div class="upload-placeholder" id="uploadPlaceholder">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                <p class="mb-3">Drag and drop your file here or click to browse</p>
+                            </div>
+                            
+                            <div class="file-info" id="fileInfo">
+                                <i class="fas fa-file fa-2x text-primary mb-2"></i>
+                                <p class="mb-0"><strong id="fileName"></strong></p>
+                                <p class="small text-muted" id="fileSize"></p>
+                            </div>
+                            
+                            {{ form.uploaded_file }}
+                        </div>
+                        <div class="form-text mt-2">{{ form.uploaded_file.help_text }}</div>
+                    </div>
+
+                    <div class="alert alert-danger" id="errorAlert" style="display: none;">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <span id="errorMessage"></span>
+                    </div>
+
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            {{ form.errors }}
+                        </div>
+                    {% endif %}
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                            <i class="fas fa-upload me-2"></i>Upload and Process
+                        </button>
+                        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">File Format Requirements</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6>CSV Format</h6>
+                        <p class="small text-muted">
+                            Must have a header row with a column containing questions.
+                        </p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Excel Format</h6>
+                        <p class="small text-muted">
+                            First sheet will be used. Must have headers in the first row.
+                        </p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>JSON Format</h6>
+                        <p class="small text-muted">
+                            Array of objects with question data in a consistent structure.
+                        </p>
+                    </div>
+                    <div class="col-md-3">
+                        <h6>JSONL Format</h6>
+                        <p class="small text-muted">
+                            One JSON object per line. Preferred format for the KC algorithm.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
