@@ -1,0 +1,36 @@
+# Multiple Choice Question
+{
+  "id": "sciqa-2327",
+  "type": "Multiple Choice",
+  "question": {
+    "stem": "Which is more flexible?",
+    "choices": [
+      {"label": "a", "text": "diamond"},
+      {"label": "b", "text": "wool sweater"}
+    ]
+  },
+  "answerKey": "b",
+
+  # Miscellaneous fields
+  "skill": "Compare properties of materials",
+  "subject": "natural science",
+  "topic": "physics",
+  "category": "Materials",
+  "grade": "grade3"
+}
+# Fill in the blank question.  Note: Do not include "choices" in the question field 
+# for fill in the blank style questions.
+{
+  "id": "spacing-1161-fib-5",
+  "type": "Fill in the Blank",
+  "question": {
+    "stem": "When forces are _____, an object’s motion does not change."
+  },
+  "answerKey": "balanced",
+
+  # Miscellaneous fields
+  "LO": "I can compare balanced vs unbalanced forces",
+  "Topic": "6.3 Force and Motion",
+}
+
+{"id": "elearning-mcq-1", "type": "Multiple Choice", "question": {"stem": "Which cognitive process aims to limit stress on working memory by fostering a deeper understanding of the content and learner engagement?", "choices": [{"label": "a", "text": "Essential processing"}, {"label": "b", "text": "Extraneous processing"}, {"label": "c", "text": "Generative processing"}, {"label": "d", "text": "Limited capacity"}]}, "answerKey": "c", "skillref": ["distinguish_tech_vs_lrng_centrd_lrng_vs_instrctn_skill"], "step-name": ["q2_distinguish_tech_lrnr_intrct_3_cog_pool_c968fda3fa664b3ebbb36d3bae128666"], "ds-step-name": ["Activity gltl7_distinguish_tech_lrnr_intrct_3_4yxxf, part c968fda3fa664b3ebbb36d3bae128666 Multiple choice submission"]}

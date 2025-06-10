@@ -65,3 +65,16 @@
 .file-upload-area.has-file .remove-file {
     display: block;
 }
+
+.format-example {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 10px;
+    margin: 10px 0;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+}
+.download-btn {
+    margin-top: 15px;
+}

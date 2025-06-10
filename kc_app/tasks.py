@@ -11,55 +11,78 @@ logger = logging.getLogger(__name__)
 @shared_task
 def process_kc_task(task_id):
     """
-    Celery task to process KC generation
+    Fast preparation work - can run in parallel
     """
     try:
         task = TaskSubmission.objects.get(id=task_id)
-        task.status = 'processing'
+        task.status = 'uploaded'
         task.save()
         
-        # Step 1: Convert file to JSONL-ready data
-        logger.info(f"Converting file to JSONL data for task {task_id}")
+        # Convert file (fast operation)
+        logger.info(f"Converting file for task {task_id}")
         jsonl_data = convert_file_to_jsonl_data(task.uploaded_file.path)
+        task.status = 'converted'
+        task.save()
         
-        # Step 2: Save as JSONL file for records (optional)
+        # Save JSONL file (fast operation)
         logger.info(f"Saving JSONL file for task {task_id}")
         jsonl_path = save_jsonl_file(jsonl_data, task_id)
         task.json_file.name = jsonl_path
+        task.status = 'queued'  # Now queued for API processing
         task.save()
         
-        # Step 3: Call KC API with JSONL data
-        logger.info(f"Calling KC API for task {task_id}")
+        # Send to API queue - this will wait its turn
+        print("About to call the process")
+        process_kc_api.delay(task_id, jsonl_data)
+        print("Processed")
+        
+    except Exception as e:
+        logger.error(f"Task {task_id} preparation failed: {str(e)}")
+        task = TaskSubmission.objects.get(id=task_id)
+        task.status = 'failed'
+        task.error_message = str(e)
+        task.save()
+
+        send_failure_email(task)
+
+@shared_task(bind=True)
+def process_kc_api(self, task_id, jsonl_data):
+    """
+    Slow API work - runs one at a time
+    """
+    try:
+        task = TaskSubmission.objects.get(id=task_id)
+        print("IN KC API PROCESSING")
+        
+        # This is when actual processing starts
+        task.status = 'processing'
+        task.save()
+        logger.info(f"Starting API call for task {task_id}")
+        
+        # The slow API call
         kc_results = call_kc_api(jsonl_data)
         
-        # Step 4: Save results to CSV
+        # Save results
         logger.info(f"Saving results for task {task_id}")
         csv_path = save_results_to_csv(kc_results, task_id)
         
-        # Update task
         task.output_csv.name = csv_path
         task.status = 'completed'
         task.completed_at = timezone.now()
         task.save()
         
-        # Send notification email
         send_completion_email(task)
-        
         logger.info(f"Task {task_id} completed successfully")
-        return f"Task {task_id} completed successfully"
         
     except Exception as e:
-        logger.error(f"Task {task_id} failed: {str(e)}")
+        logger.error(f"Task {task_id} API processing failed: {str(e)}")
         task = TaskSubmission.objects.get(id=task_id)
         task.status = 'failed'
         task.error_message = str(e)
         task.save()
-        
-        # Send failure notification
         send_failure_email(task)
-        
-        raise e
-
+        raise e  # Re-raise so Celery knows it failed
+    
 def send_completion_email(task):
     """Send email notification when task is completed"""
     try:

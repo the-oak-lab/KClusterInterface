@@ -22,6 +22,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         icon = 'fas fa-spinner fa-spin';
                         message = 'Processing... Your file is being analyzed.';
                         break;
+                    case 'queued':
+                        alertClass = 'alert-info';
+                        message = 'Queued: Your task is waiting to be processed.';
+                        break;
+                    case 'converted':
+                        alertClass = 'alert-info';
+                        message = 'Converted: Your file was converted successfully and will be queued for analysis.';
+                        break;
                     case 'failed':
                         alertClass = 'alert-danger';
                         icon = 'fas fa-exclamation-triangle';
@@ -32,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     default:
                         alertClass = 'alert-info';
                         icon = 'fas fa-clock';
-                        message = 'Queued: Your task is waiting to be processed.';
+                        message = 'Uploaded: Your file was uploaded successfully';
                 }
                 
                 statusContainer.innerHTML = `
@@ -46,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Check if task is still processing
-    if (currentStatus === 'processing' || currentStatus === 'queued') {
+    if (currentStatus === 'processing' || currentStatus === 'queued' || currentStatus === "uploaded" || currentStatus === "converted") {
         // Update every 5 seconds
         const interval = setInterval(() => {
             updateStatus();

@@ -134,6 +134,11 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'America/New_York'
+CELERY_TASK_ROUTES = {
+    'kc_app.tasks.process_kc_task': {'queue': 'file_processing'},
+    'kc_app.tasks.process_kc_api': {'queue': 'api_calls'},
+}
+CELERY_TASK_DEFAULT_QUEUE = 'default'
 
 # Media files
 MEDIA_URL = '/media/'
