@@ -76,31 +76,31 @@
                     <h6>Processing Steps</h6>
                     <div class="progress-steps">
                         <div class="d-flex justify-content-between">
-                            <div class="step {% if task.status != 'uploaded' %}completed{% endif %}">
+                            <div id="upload-icon" class="step completed">
                                 <div class="step-icon">
                                     <i class="fas fa-upload"></i>
                                 </div>
                                 <small>File Uploaded</small>
                             </div>
-                            <div class="step {% if task.status == 'uploaded' %} active {% else %}completed{% endif %}">
+                            <div id="converting-icon" class="step {% if task.status == 'uploaded' %} active {% elif task.status == 'failed' %} failed {% else %}completed{% endif %}">
                                 <div class="step-icon">
                                     <i class="fas fa-upload"></i>
                                 </div>
                                 <small>Converting</small>
                             </div>
-                            <div class="step {% if task.status == 'converted' or task.status == 'queued' %}active{% elif task.status == 'processing' or task.status == 'completed'%}completed{% endif %}">
+                            <div id="queued-icon" class="step {% if task.status == 'converted' or task.status == 'queued' %}active{% elif task.status == 'processing' or task.status == 'completed'%}completed{% elif task.status == 'failed' %}failed{% endif %}">
                                 <div class="step-icon">
                                     <i class="fas fa-clock"></i>
                                 </div>
                                 <small>Queued</small>
                             </div>
-                            <div class="step {% if task.status == 'processing' %}active{% elif task.status == 'completed' %}completed{% elif task.status == 'failed' %}failed{% endif %}">
+                            <div id="processing-icon" class="step {% if task.status == 'processing' %}active{% elif task.status == 'completed' %}completed{% elif task.status == 'failed' %}failed{% endif %}">
                                 <div class="step-icon">
                                     <i class="fas fa-cogs"></i>
                                 </div>
                                 <small>Processing</small>
                             </div>
-                            <div class="step {% if task.status == 'completed' %}completed{% elif task.status == 'failed' %}failed{% endif %}">
+                            <div id="completed-icon" class="step {% if task.status == 'completed' %}completed{% elif task.status == 'failed' %}failed{% endif %}">
                                 <div class="step-icon">
                                     <i class="fas fa-check"></i>
                                 </div>

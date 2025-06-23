@@ -1,12 +1,3 @@
-id,type,question,answerKey,skillref,step-name,ds-step-name
-elearning-mcq-1,Multiple Choice,"Which cognitive process aims to limit stress on working memory by fostering a deeper understanding of the content and learner engagement?
-a) Essential processing
-b) Extraneous processing
-c) Generative processing
-d) Limited capacity
-Answer: c",c,distinguish_tech_vs_lrng_centrd_lrng_vs_instrctn_skill,q2_distinguish_tech_lrnr_intrct_3_cog_pool_c968fda3fa664b3ebbb36d3bae128666,"Activity gltl7_distinguish_tech_lrnr_intrct_3_4yxxf, part c968fda3fa664b3ebbb36d3bae128666 Multiple choice submission"
-elearning-mcq-2,Multiple Choice,"Adding practice activities or relevant visuals are techniques used to increase psychological engagement as an attempt to
-a) Increase generative processing
-b) Increase essential processing
-c) Reduce extraneous processing
-Answer: a",a,distinguish_tech_vs_lrng_centrd_lrng_vs_instrctn_skill,q3_distinguish_tech_lrnr_intrct_3_cog_pool_b3423f78f89f49688e1e55b3ab9a7133,"Activity gltl7_distinguish_tech_lrnr_intrct_3_u9usm, part b3423f78f89f49688e1e55b3ab9a7133 Multiple choice submission"
+﻿id,type,question,choice_a,choice_b,choice_c,answerKey,skill,subject,topic,Category,Grade
+sciqa-2327,Multiple Choice,Which is more flexible?,Diamond,Wool Sweater,Wood,b,Compare properties of materials,natural science,physics,Materials,grade3
+spacing-1161-fib-5,Fill in the Blank,"When forces are _____, an object's motion does not change.",,,,balanced,Balance of forces,physics,6.3 Force and Motion,Forces,grade8

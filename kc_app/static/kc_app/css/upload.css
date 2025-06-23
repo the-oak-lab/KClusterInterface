@@ -74,6 +74,10 @@
     margin: 10px 0;
     font-family: 'Courier New', monospace;
     font-size: 0.9em;
+    /* white-space: pre-line; */
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 400px;
 }
 .download-btn {
     margin-top: 15px;

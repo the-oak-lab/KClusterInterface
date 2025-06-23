@@ -44,7 +44,7 @@ def dashboard(request):
         'page_obj': page_obj,
         'total_tasks': tasks.count(),
         'completed_tasks': tasks.filter(status='completed').count(),
-        'processing_tasks': tasks.filter(status='processing').count(),
+        'processing_tasks': tasks.filter(status__in=['processing', 'queued', 'uploaded']).count(),
         'failed_tasks': tasks.filter(status='failed').count(),
     }
     

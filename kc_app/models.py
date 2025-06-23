@@ -32,7 +32,7 @@ class TaskSubmission(models.Model):
     )
     json_file = models.FileField(upload_to='processed/', blank=True, null=True)
     output_csv = models.FileField(upload_to='results/', blank=True, null=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='queued')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='uploaded')
     error_message = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(blank=True, null=True)

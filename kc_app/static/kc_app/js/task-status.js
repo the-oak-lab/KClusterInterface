@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         break;
                     case 'queued':
                         alertClass = 'alert-info';
+                        icon = 'fas fa-clock';
                         message = 'Queued: Your task is waiting to be processed.';
                         break;
                     case 'converted':
@@ -39,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         break;
                     default:
                         alertClass = 'alert-info';
-                        icon = 'fas fa-clock';
+                        icon = 'fas fa-upload';
                         message = 'Uploaded: Your file was uploaded successfully';
                 }
                 

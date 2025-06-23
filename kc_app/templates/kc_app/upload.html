@@ -45,36 +45,8 @@
                         </li>
                     </ul>
                     <div class="tab-content mt-3" id="formatTabContent">
-                        <!-- CSV Tab -->
-                        <div class="tab-pane fade show active" id="csv-content" role="tabpanel" aria-labelledby="csv-tab">
-                            <h6>CSV Format Requirements</h6>
-                            <p class="text-muted">
-                                Comma-separated values file with a header row containing column names. Must include a column with your questions.
-                            </p>
-                            
-                            <h6 class="mt-3">Required Structure:</h6>
-                            <ul class="small">
-                                <li>Header row in the first line</li>
-                                <li>At least one column containing questions</li>
-                                <li>UTF-8 encoding recommended</li>
-                                <li>Comma as delimiter (standard CSV format)</li>
-                            </ul>
-
-                            <h6 class="mt-3">Example:</h6>
-                            <div class="format-example">
-                                id,type,question,answerKey<br>
-                                sciqa-2327,Multiple Choice,Which is more flexible? a) diamond b) wool sweater, b<br>
-                            </div>
-
-                            <div class="download-btn">
-                                <a href="{% static 'kc_app/files/example.csv' %}" class="btn btn-outline-primary btn-sm">
-                                    <i class="bi bi-download"></i> Download CSV Template
-                                </a>
-                            </div>
-                        </div>
-
                         <!-- Excel Tab -->
-                        <div class="tab-pane fade" id="excel-content" role="tabpanel" aria-labelledby="excel-tab">
+                        <div class="tab-pane fade show active" id="excel-content" role="tabpanel" aria-labelledby="excel-tab">
                             <h6>Excel Format Requirements</h6>
                             <p class="text-muted">
                                 Microsoft Excel file (.xlsx or .xls). Only the first sheet will be processed.
@@ -84,8 +56,10 @@
                             <ul class="small">
                                 <li>Headers must be in the first row (row 1)</li>
                                 <li>Data starts from row 2</li>
-                                <li>At least one column containing questions</li>
-                                <li>Empty rows will be ignored</li>
+                                <li>Must contain the following columns: id, type, question</li>
+                                <li>Options for Multiple Choice Questions should be stored in separate columns, each beginning with "choice_";
+                                    Other types of questions should leave the choices columns blank.
+                                </li>
                             </ul>
 
                             <h6 class="mt-3">Supported Formats:</h6>
@@ -94,15 +68,48 @@
                                 <li>.xls (Excel 97-2003)</li>
                             </ul>
 
-                            <h6 class="mt-3">Example Structure:</h6>
-                            <div class="format-example"> elearning-mcq-1,Multiple Choice
-                                Row 1: | id | type | question | answerKey | <br>
-                                Row 2: | elearning-mcq-1 | Multiple Choice | What is ... | b | <br>
-                            </div>
+                            <h6 class="mt-3">Example</h6>
+                            <p class="small">**Note: <b>Bolded columns</b> are required.</p>
+                            <pre class="format-example">
+Row 1: |     <b>id</b>     |       <b>type</b>        | <b>question</b>        | choice_a | choice_b | choice_c| answerKey | Misc Fields |
+Row 2: | sciqa-2327 |  Multiple Choice  | Which is ...    | Diamond  |   Wool   |   Wood  |     b     |     ...     |
+Row 3: | sciqa-4389 | Fill in the Blank | When forces ... |          |          |         |  balanced |     ...     |</pre>
 
                             <div class="download-btn">
                                 <a href="{% static 'kc_app/files/example.xslx' %}" class="btn btn-outline-success btn-sm">
                                     <i class="bi bi-download"></i> Download Excel Template
+                                </a>
+                            </div>
+                        </div>
+                
+                        <!-- CSV Tab -->
+                        <div class="tab-pane fade" id="csv-content" role="tabpanel" aria-labelledby="csv-tab">
+                            <h6>CSV Format Requirements</h6>
+                            <p class="text-muted">
+                                Comma-separated values file with a header row containing column names. Must include a column with your questions.
+                            </p>
+                            
+                            <h6 class="mt-3">Required Structure:</h6>
+                            <ul class="small">
+                                <li>Header row in the first line</li>
+                                <li>UTF-8 encoding recommended</li>
+                                <li>Comma as delimiter (standard CSV format)</li>
+                                <li>Must contain the following columns: id, type, question</li>
+                                <li>Options for Multiple Choice Questions should be stored in separate columns, each beginning with "choice_";
+                                    Other types of questions should leave the choices columns blank.
+                                </li>
+                            </ul>
+
+                            <h6 class="mt-3">Example:</h6>
+                            <p class="small">**Note: <b>Bolded columns</b> are required.</p>
+                            <pre class="format-example">
+Line 1: <b>id</b>,<b>type</b>,<b>question</b>,choice_a,choice_b,choice_c,answerKey,Misc Fields
+Line 2: sciqa-2327,Multiple Choice,Which is ...,Diamond,Wool,Metal,b
+Line 3: sciqa-4389,Fill in the Blank,When forces ...,,,,balanced,...</pre>
+
+                            <div class="download-btn">
+                                <a href="{% static 'kc_app/files/example.csv' %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-download"></i> Download CSV Template
                                 </a>
                             </div>
                         </div>
@@ -115,28 +122,52 @@
                             </p>
 
                             <h6 class="mt-3">Required Structure:</h6>
+                            <p class="small">Fields marked with an asterisk (*) are required.</p>
                             <ul class="small">
                                 <li>Root element must be an array</li>
-                                <li>Each object should have consistent properties</li>
-                                <li>At least one property containing questions</li>
                                 <li>Valid JSON syntax required</li>
+                                <li>Each object must contain the following properties: id, type, question</li>
+                                <li>Question text should be stored in a nested object</li>
+                                <ul>
+                                    <li>Question text stored as <code>"stem"</code></li>
+                                    <li><code>choices</code> is an array of objects, only included for MCQs</li>
+                                </ul>
                             </ul>
 
                             <h6 class="mt-3">Example:</h6>
-                            <div class="format-example">
-                                [<br>
-                                &nbsp;&nbsp;{<br>
-                                &nbsp;&nbsp;&nbsp;&nbsp;"question": "What is the capital of France?",<br>
-                                &nbsp;&nbsp;&nbsp;&nbsp;"category": "Geography",<br>
-                                &nbsp;&nbsp;&nbsp;&nbsp;"difficulty": "Easy"<br>
-                                &nbsp;&nbsp;},<br>
-                                &nbsp;&nbsp;{<br>
-                                &nbsp;&nbsp;&nbsp;&nbsp;"question": "Explain quantum physics",<br>
-                                &nbsp;&nbsp;&nbsp;&nbsp;"category": "Science",<br>
-                                &nbsp;&nbsp;&nbsp;&nbsp;"difficulty": "Hard"<br>
-                                &nbsp;&nbsp;}<br>
-                                ]
-                            </div>
+                            <p class="small">Note: <b>Bolded fields</b> are required.</p>
+                            <pre class="format-example">
+[
+    {
+        "<b>id</b>": "sciqa-2327",
+        "<b>type</b>": "Multiple Choice",
+        "<b>question</b>": {
+            "<b>stem</b>": "Which is more flexible?",
+            "choices": [
+                {"label": "a", "text": "diamond"},
+                {"label": "b", "text": "wool sweater"}
+            ]
+        },
+        "answerKey": "b",
+        # Miscellaneous fields
+        "skill": "Compare properties of materials",
+        "subject": "natural science",
+        "topic": "physics",
+        "category": "Materials",
+            "grade": "grade3"
+    },
+    {
+        "<b>id</b>": "spacing-1161-fib-5",
+        "<b>type</b>": "Fill in the Blank",
+        "<b>question</b>": {
+            "<b>stem</b>": "When forces are _____, an object's motion does not change."
+        },
+        "answerKey": "balanced",
+        # Miscellaneous fields
+        "LO": "I can compare balanced vs unbalanced forces",
+        "Topic": "6.3 Force and Motion",
+    }
+]</pre>
 
                             <div class="download-btn">
                                 <a href="{% static 'kc_app/files/example.json' %}" class="btn btn-outline-info btn-sm">
@@ -153,6 +184,7 @@
                             </p>
 
                             <h6 class="mt-3">Required Structure:</h6>
+                            <p class="small">Fields marked with an asterisk (*) are required.</p>
                             <ul class="small">
                                 <li>One valid JSON object per line</li>
                                 <li>No commas between objects</li>
@@ -161,26 +193,40 @@
                             </ul>
 
                             <h6 class="mt-3">Example:</h6>
-                            <div class="format-example">
-                                {<br>
-                                &nbsp;&nbsp;"id": "sciqa-2327",<br>
-                                &nbsp;&nbsp;"type": "Multiple Choice",<br>
-                                &nbsp;&nbsp;"question": {<br>
-                                &nbsp;&nbsp;&nbsp;&nbsp;"stem": "Which is more flexible?",<br>
-                                &nbsp;&nbsp;&nbsp;&nbsp;"choices": [<br>
-                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{"label": "a", "text": "diamond"},<br>
-                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{"label": "b", "text": "wool sweater"}<br>
-                                &nbsp;&nbsp;&nbsp;&nbsp;]<br>
-                                &nbsp;&nbsp;},<br>
-                                &nbsp;&nbsp;"answerKey": "b",<br>
-                                &nbsp;&nbsp;# Miscellaneous fields<br>
-                                &nbsp;&nbsp;"skill": "Compare properties of materials",<br>
-                                &nbsp;&nbsp;"subject": "natural science",<br>
-                                &nbsp;&nbsp;"topic": "physics",<br>
-                                &nbsp;&nbsp;"category": "Materials",<br>
-                                &nbsp;&nbsp;"grade": "grade3"<br>
-                                }
-                            </div>
+                            <p class="small">Note: Bolded fields are required.</p>
+                            <pre class="format-example">
+# Note for actual jsonl files, each line in the file must be a complete, valid JSON object.
+# Each object is expanded here just for readability purposes
+{
+    "<b>id</b>": "sciqa-2327",
+    "<b>type</b>": "Multiple Choice",
+    "<b>question</b>": {
+        "<b>stem</b>": "Which is more flexible?",
+        "choices": [
+            {"label": "a", "text": "diamond"},
+            {"label": "b", "text": "wool sweater"}
+        ]
+    },
+    "answerKey": "b",
+    # Miscellaneous fields
+    "skill": "Compare properties of materials",
+    "subject": "natural science",
+    "topic": "physics",
+    "category": "Materials",
+        "grade": "grade3"
+}
+{
+    "<b>id</b>": "spacing-1161-fib-5",
+    "<b>type</b>": "Fill in the Blank",
+    "<b>question</b>": {
+        "<b>stem</b>": "When forces are _____, an object's motion does not change."
+    },
+    "answerKey": "balanced",
+    # Miscellaneous fields
+    "LO": "I can compare balanced vs unbalanced forces",
+    "Topic": "6.3 Force and Motion",
+}
+</pre>
 
                             <div class="download-btn">
                                 <a href="{% static 'kc_app/files/example.jsonl' %}" class="btn btn-outline-warning btn-sm">

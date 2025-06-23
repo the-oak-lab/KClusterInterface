@@ -6,40 +6,327 @@ from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 import os
 import tempfile
-def convert_file_to_jsonl_data(file_path):
-    file_format = file_path.split(".")[-1]
-    """Convert uploaded file directly to JSONL-ready data (list of objects)"""
-    if file_format == 'jsonl':
-        # Read JSONL file (one JSON object per line)
-        data = []
-        with open(file_path, 'r') as f:
-            for line in f:
-                line = line.strip()
-                if line:  # Skip empty lines
-                    data.append(json.loads(line))
+from typing import List, Dict, Any, Union
+
+class FileValidationError(Exception):
+    """Custom exception for file validation errors"""
+    pass
+
+def validate_required_columns(data: List[Dict], required_columns: List[str], file_format: str):
+    """Validate that required columns exist in the data"""
+    if not data:
+        raise FileValidationError(f"File is empty or contains no valid data")
+    
+    # Check first record for required columns
+    first_record = data[0]
+    missing_columns = []
+    
+    for col in required_columns:
+        if col not in first_record:
+            missing_columns.append(col)
+    
+    if missing_columns:
+        raise FileValidationError(
+            f"{file_format.upper()} file missing required columns: {', '.join(missing_columns)}. "
+            f"Required columns are: {', '.join(required_columns)}"
+        )
+
+def validate_json_structure(data: List[Dict]):
+    """Validate JSON/JSONL specific structure requirements"""
+    for i, record in enumerate(data):
+        # Check if 'question' field exists and is properly structured
+        if 'question' not in record:
+            raise FileValidationError(f"Record {i+1}: Missing required 'question' field")
+        
+        question_data = record['question']
+        
+        # Question should be an object with 'stem' field
+        if not isinstance(question_data, dict):
+            raise FileValidationError(
+                f"Record {i+1}: 'question' field must be an object, not {type(question_data).__name__}"
+            )
+        
+        if 'stem' not in question_data:
+            raise FileValidationError(f"Record {i+1}: 'question' object missing required 'stem' field")
+        
+        # For Multiple Choice questions, validate choices structure
+        if record.get('type') == 'Multiple Choice':
+            if 'choices' not in question_data:
+                raise FileValidationError(
+                    f"Record {i+1}: Multiple Choice question missing 'choices' array"
+                )
+            
+            choices = question_data['choices']
+            if not isinstance(choices, list) or len(choices) == 0:
+                raise FileValidationError(
+                    f"Record {i+1}: 'choices' must be a non-empty array for Multiple Choice questions"
+                )
+            elif len(choices) == 1:
+                raise FileValidationError(
+                    f"Record {i+1}: 'choices' for Multiple Choice questions must have more than one option"
+                )
+            
+            # Validate choice structure
+            for j, choice in enumerate(choices):
+                if not isinstance(choice, dict):
+                    raise FileValidationError(
+                        f"Record {i+1}, Choice {j+1}: Each choice must be an object"
+                    )
+                if 'label' not in choice or 'text' not in choice:
+                    raise FileValidationError(
+                        f"Record {i+1}, Choice {j+1}: Each choice must have 'label' and 'text' fields"
+                    )
+
+def validate_csv_excel_structure(data: List[Dict], file_format: str):
+    """Validate CSV/Excel specific structure requirements"""
+    for i, record in enumerate(data):
+        # Check for choice columns pattern for Multiple Choice questions
+        if record.get('type') == 'Multiple Choice':
+            choice_columns = [col for col in record.keys() if col.startswith('choice_')]
+            if not choice_columns:
+                raise FileValidationError(
+                    f"Record {i+1}: Multiple Choice question missing choice columns (columns starting with 'choice_')"
+                )
+            
+            # Check that at least one choice has content
+            has_choices = any(record.get(col) and str(record.get(col)).strip() for col in choice_columns)
+            if not has_choices:
+                raise FileValidationError(
+                    f"Record {i+1}: Multiple Choice question has no populated choice columns"
+                )
+
+def transform_csv_excel_to_json_structure(data: List[Dict]) -> List[Dict]:
+    """Transform flat CSV/Excel structure to nested JSON structure"""
+    import pandas as pd
+    import numpy as np
+    
+    transformed_data = []
+    
+    for record in data:
+        # Create new record with transformed structure
+        new_record = {}
+        
+        # Copy basic fields
+        new_record['id'] = record['id']
+        new_record['type'] = record['type']
+        
+        # Transform question field
+        question_obj = {
+            'stem': record['question']
+        }
+        
+        # Handle Multiple Choice questions
+        if record.get('type') == 'Multiple Choice':
+            choices = []
+            choice_columns = [col for col in record.keys() if col.startswith('choice_')]
+            choice_columns.sort()  # Ensure consistent ordering
+            
+            for col in choice_columns:
+                choice_value = record.get(col)
+                # Only include non-empty choices (skip NaN, None, empty strings)
+                if (choice_value is not None and 
+                    not (isinstance(choice_value, float) and pd.isna(choice_value)) and
+                    str(choice_value).strip()):
+                    
+                    # Extract label from column name (e.g., 'choice_a' -> 'a')
+                    label = col.replace('choice_', '')
+                    choices.append({
+                        'label': label,
+                        'text': str(choice_value).strip()
+                    })
+            
+            if choices:  # Only add choices if we have any
+                question_obj['choices'] = choices
+        
+        new_record['question'] = question_obj
+        
+        # Copy all other fields (excluding choice columns and the original question)
+        excluded_fields = {'question'} | {col for col in record.keys() if col.startswith('choice_')}
+        for key, value in record.items():
+            if key not in excluded_fields and key not in new_record:
+                # Skip NaN values
+                if not (isinstance(value, float) and pd.isna(value)):
+                    new_record[key] = value
+        
+        transformed_data.append(new_record)
+    
+    return transformed_data
+
+def validate_common_requirements(data: List[Dict]):
+    """Validate requirements common to all formats"""
+    for i, record in enumerate(data):
+        # Validate required fields exist and are not empty
+        if not record.get('id') or str(record.get('id')).strip() == '':
+            raise FileValidationError(f"Record {i+1}: 'id' field is required and cannot be empty")
+        
+        if not record.get('type') or str(record.get('type')).strip() == '':
+            raise FileValidationError(f"Record {i+1}: 'type' field is required and cannot be empty")
+        
+        # For CSV/Excel, question should be a string
+        # For JSON/JSONL, question should be an object (validated separately)
+        question_field = record.get('question')
+        if not question_field:
+            raise FileValidationError(f"Record {i+1}: 'question' field is required and cannot be empty")
+
+def convert_file_to_jsonl_data(file_path: str) -> List[Dict[str, Any]]:
+    """
+    Convert uploaded file to JSONL-ready data with validation against format requirements
+    
+    Args:
+        file_path: Path to the uploaded file
+        
+    Returns:
+        List of dictionaries ready for JSONL conversion
+        
+    Raises:
+        FileValidationError: If file doesn't meet format requirements
+        ValueError: If file format is unsupported
+    """
+    if not os.path.exists(file_path):
+        raise FileValidationError(f"File not found: {file_path}")
+    
+    file_extension = file_path.split(".")[-1].lower()
+    
+    # Map file extensions to formats
+    format_mapping = {
+        'jsonl': 'jsonl',
+        'json': 'json', 
+        'csv': 'csv',
+        'xlsx': 'excel',
+        'xls': 'excel'
+    }
+    
+    if file_extension not in format_mapping:
+        raise ValueError(f"Unsupported file format: {file_extension}")
+    
+    file_format = format_mapping[file_extension]
+    required_columns = ['id', 'type', 'question']
+    
+    try:
+        # Load data based on format
+        if file_format == 'jsonl':
+            data = []
+            with open(file_path, 'r', encoding='utf-8') as f:
+                for line_num, line in enumerate(f, 1):
+                    line = line.strip()
+                    if line:  # Skip empty lines
+                        try:
+                            data.append(json.loads(line))
+                        except json.JSONDecodeError as e:
+                            raise FileValidationError(f"Invalid JSON on line {line_num}: {str(e)}")
+        
+        elif file_format == 'json':
+            with open(file_path, 'r', encoding='utf-8') as f:
+                try:
+                    json_data = json.load(f)
+                except json.JSONDecodeError as e:
+                    raise FileValidationError(f"Invalid JSON format: {str(e)}")
+                
+                # Ensure it's a list of objects
+                if isinstance(json_data, dict):
+                    data = [json_data]  # Single object -> list
+                elif isinstance(json_data, list):
+                    data = json_data    # Already a list
+                else:
+                    raise FileValidationError("JSON root element must be an object or array of objects")
+        
+        elif file_format == 'csv':
+            try:
+                # Read CSV with error handling
+                df = pd.read_csv(file_path, encoding='utf-8')
+                if df.empty:
+                    raise FileValidationError("CSV file is empty")
+                
+                # Strip whitespace from column names
+                df.columns = df.columns.str.strip()
+                data = df.to_dict('records')
+                
+            except pd.errors.EmptyDataError:
+                raise FileValidationError("CSV file is empty or contains no data")
+            except pd.errors.ParserError as e:
+                raise FileValidationError(f"CSV parsing error: {str(e)}")
+            except UnicodeDecodeError:
+                # Try with different encoding
+                try:
+                    df = pd.read_csv(file_path, encoding='latin-1')
+                    df.columns = df.columns.str.strip()
+                    data = df.to_dict('records')
+                except Exception as e:
+                    raise FileValidationError(f"CSV encoding error: {str(e)}")
+        
+        elif file_format == 'excel':
+            try:
+                # Read only the first sheet
+                df = pd.read_excel(file_path, sheet_name=0)
+                if df.empty:
+                    raise FileValidationError("Excel file is empty")
+                
+                # Strip whitespace from column names
+                df.columns = df.columns.str.strip()
+                data = df.to_dict('records')
+                
+            except Exception as e:
+                raise FileValidationError(f"Excel reading error: {str(e)}")
+        
+        # Validate common requirements
+        validate_common_requirements(data)
+        
+        # Validate required columns exist
+        validate_required_columns(data, required_columns, file_format)
+        
+        # Format-specific validation
+        if file_format in ['json', 'jsonl']:
+            validate_json_structure(data)
+        elif file_format in ['csv', 'excel']:
+            validate_csv_excel_structure(data, file_format)
+            # Transform CSV/Excel data to proper JSON structure
+            data = transform_csv_excel_to_json_structure(data)
+        
         return data
+        
+    except FileValidationError:
+        # Re-raise validation errors as-is
+        raise
+    except Exception as e:
+        # Convert other exceptions to validation errors with context
+        raise FileValidationError(f"Error processing {file_format.upper()} file: {str(e)}")
+
+
+
+# def convert_file_to_jsonl_data(file_path):
+#     file_format = file_path.split(".")[-1]
+#     """Convert uploaded file directly to JSONL-ready data (list of objects)"""
+#     if file_format == 'jsonl':
+#         # Read JSONL file (one JSON object per line)
+#         data = []
+#         with open(file_path, 'r') as f:
+#             for line in f:
+#                 line = line.strip()
+#                 if line:  # Skip empty lines
+#                     data.append(json.loads(line))
+#         return data
     
-    elif file_format == 'json':
-        with open(file_path, 'r') as f:
-            json_data = json.load(f)
-            # Ensure it's a list of objects
-            if isinstance(json_data, dict):
-                return [json_data]  # Single object -> list
-            elif isinstance(json_data, list):
-                return json_data    # Already a list
-            else:
-                raise ValueError("JSON must be an object or array of objects")
+#     elif file_format == 'json':
+#         with open(file_path, 'r') as f:
+#             json_data = json.load(f)
+#             # Ensure it's a list of objects
+#             if isinstance(json_data, dict):
+#                 return [json_data]  # Single object -> list
+#             elif isinstance(json_data, list):
+#                 return json_data    # Already a list
+#             else:
+#                 raise ValueError("JSON must be an object or array of objects")
     
-    elif file_format == 'csv':
-        df = pd.read_csv(file_path)
-        return df.to_dict('records')
+#     elif file_format == 'csv':
+#         df = pd.read_csv(file_path)
+#         return df.to_dict('records')
     
-    elif file_format == 'excel':
-        df = pd.read_excel(file_path)
-        return df.to_dict('records')
+#     elif file_format == 'excel':
+#         df = pd.read_excel(file_path)
+#         return df.to_dict('records')
     
-    else:
-        raise ValueError(f"Unsupported file format: {file_format}")
+#     else:
+#         raise ValueError(f"Unsupported file format: {file_format}")
 
 def call_kc_api(jsonl_data):
     """Call the KC identification API with JSONL data"""
@@ -172,3 +459,16 @@ def save_results_to_csv(kc_results, task_id):
     os.unlink(temp_path)
     
     return saved_path
+
+# Example usage and testing
+if __name__ == "__main__":
+    # Test the function
+    try:
+        data = convert_file_to_jsonl_data("/Users/yaboi/Desktop/Oaklab/KClusterInterface/kc_app/static/kc_app/files/example.jsonl")
+        print(f"Successfully converted {len(data)} records")
+        print(data)
+        # pass
+    except FileValidationError as e:
+        print(f"Validation Error: {e}")
+    except ValueError as e:
+        print(f"Format Error: {e}")
