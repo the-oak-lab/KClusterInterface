@@ -4,12 +4,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse, FileResponse, Http404
 from django.core.paginator import Paginator
-from django.urls import reverse
-from django.utils import timezone
 from .models import TeacherUser, TaskSubmission, KCModel
 from .forms import TeacherRegistrationForm, FileUploadForm
-from .tasks import process_kc_task
-import os
+from .utils import upload_to_gcs, download_from_gcs
+from django.conf import settings
+import subprocess
+from google.cloud import storage
+from datetime import datetime, timedelta, timezone
 
 def home(request):
     """Welcome page"""
@@ -50,6 +51,21 @@ def dashboard(request):
     
     return render(request, 'dashboard.html', context)
 
+def process_file(task_id: int):
+    # gcs_input_path: user_uploads/filename.?
+    # gcs_intermediate_path: converted/filename_converted.jsonl
+    # gcs_output_path: pmi/filename.?
+    # gcs_output_2: concepts/filename.?
+    job_name = "process-question-file"
+    region = "us-central1"
+    cmd = [
+        "gcloud", "run", "jobs", "execute", job_name,
+        "--region", region,
+        "--wait",
+        f"--set-env-vars=GCS_BUCKET={settings.GCS_BUCKET_NAME},TASK_ID={task_id}",
+    ]
+    subprocess.Popen(cmd)
+
 @login_required
 def upload_questions(request):
     """Upload questions file"""
@@ -61,10 +77,18 @@ def upload_questions(request):
             task.teacher = teacher
             task.save()
             
-            # Start Celery task
-            celery_task = process_kc_task.delay(task.id)
-            task.celery_task_id = celery_task.id
+            # Save file in GCS
+            local_path = task.uploaded_file.path
+            gcs_filename = f"uploads/task_{task.id}_{task.filename}" # type: ignore[attr-defined]
+            upload_to_gcs(local_path, gcs_filename)
+
+            task.gcs_input_blob = gcs_filename
+            task.gcs_json_blob =  f"processed/task_{task.id}_processed.jsonl"
+            # task.gcs_output_blob = f"results/task_{task.id}_output.csv" # type: ignore[attr-defined]
             task.save()
+            
+            # Start Job
+            process_file(task.id)
             
             messages.success(request, f'File "{task.filename}" uploaded successfully! Processing has begun.')
             return redirect('task_status', task_id=task.id)
@@ -87,19 +111,24 @@ def download_results(request, task_id):
     teacher = get_object_or_404(TeacherUser, user=request.user)
     task = get_object_or_404(TaskSubmission, id=task_id, teacher=teacher)
     
-    if task.status != 'completed' or not task.output_csv:
+    if task.status != 'completed' or not task.gcs_output_blob:
         messages.error(request, 'Results are not available for download.')
         return redirect('task_status', task_id=task_id)
     
     try:
-        response = FileResponse(
-            task.output_csv.open('rb'),
-            as_attachment=True,
-            filename=f'kc_results_{task_id}.csv'
+        # Create GCS client and get the blob
+        client = storage.Client()
+        bucket = client.bucket(settings.GCS_BUCKET_NAME)
+        blob = bucket.blob(task.gcs_output_blob)
+        
+        # Generate signed URL with timezone-aware datetime
+        signed_url = blob.generate_signed_url(
+            expiration=datetime.now(timezone.utc) + timedelta(hours=1),
+            method='GET'
         )
-        return response
-    except FileNotFoundError:
-        messages.error(request, 'Result file not found.')
+        return redirect(signed_url)
+    except Exception as e:
+        messages.error(request, 'Could not generate download link.')
         return redirect('task_status', task_id=task_id)
 
 @login_required
@@ -130,5 +159,7 @@ def ajax_task_status(request, task_id):
         'status': task.status,
         'error_message': task.error_message,
         'completed_at': task.completed_at.isoformat() if task.completed_at else None,
-        'has_results': bool(task.output_csv),
+        'has_results': bool(task.gcs_output_blob),
     })
+
+

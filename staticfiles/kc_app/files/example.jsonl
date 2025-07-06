@@ -1,0 +1,2 @@
+{"id": "sciqa-2327","type": "Multiple Choice","question": {"stem": "Which is more flexible?","choices": [{"label": "a", "text": "diamond"},{"label": "b", "text": "wool sweater"}]},"answerKey": "b","skill": "Compare properties of materials","subject": "natural science","topic": "physics","category": "Materials","grade": "grade3"}
+{"id": "spacing-1161-fib-5","type": "Fill in the Blank","question": {"stem": "When forces are _____, an object’s motion does not change."},"answerKey": "balanced","LO": "I can compare balanced vs unbalanced forces","Topic": "6.3 Force and Motion"}

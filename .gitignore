@@ -12,3 +12,6 @@ media
 celerybeat-schedule
 celerybeat-schedule-shm
 celerybeat-schedule-wal
+service-key.json
+old.env
+env.yaml

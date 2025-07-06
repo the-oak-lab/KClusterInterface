@@ -1,0 +1,12 @@
+FROM python:3.10-slim
+
+WORKDIR /app
+COPY . /app
+
+# Add these for psycopg2 build
+RUN apt-get update && apt-get install -y \
+    libpq-dev gcc
+
+RUN pip install -r requirements.txt
+
+CMD ["python", "main.py"]

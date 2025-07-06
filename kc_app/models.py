@@ -30,19 +30,24 @@ class TaskSubmission(models.Model):
         upload_to='uploads/',
         validators=[FileExtensionValidator(allowed_extensions=['csv', 'xlsx', 'xls', 'json', 'jsonl'])]
     )
-    json_file = models.FileField(upload_to='processed/', blank=True, null=True)
-    output_csv = models.FileField(upload_to='results/', blank=True, null=True)
+
+    gcs_input_blob = models.CharField(max_length=500, blank=True)   # e.g., "uploads/file123.json"
+    gcs_json_blob = models.CharField(max_length=500, blank=True)    # e.g., "processed/file123_processed.jsonl"
+    gcs_output_blob = models.CharField(max_length=500, blank=True)  # e.g., "results/file123_output.jsonl"
+    
+    # output_csv = models.FileField(upload_to='results/', blank=True, null=True)
+
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='uploaded')
     error_message = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(blank=True, null=True)
-    celery_task_id = models.CharField(max_length=255, blank=True)
+    job_id = models.CharField(max_length=255, blank=True)
     
     class Meta:
         ordering = ['-created_at']
     
     def __str__(self):
-        return f"Task {self.id} - {self.teacher.email} - {self.status}"
+        return f"Task {self.id} - {self.teacher.email} - {self.status}" # type: ignore[attr-defined]
     
     @property
     def filename(self):
@@ -54,4 +59,4 @@ class KCModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f"KC Model for Task {self.task_submission.id}"
+        return f"KC Model for Task {self.task_submission.id}" # type: ignore[attr-defined]

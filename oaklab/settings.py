@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from decouple import config
+from google.cloud import storage
 from pathlib import Path
 
 
@@ -31,10 +32,12 @@ SECRET_KEY = 'django-insecure-9i_8*x67mlcjj11#4zsws9&n@l&nqtj4t*^ghrg__d8ikqvd8=
 SITE_URL = config('SITE_URL', default="http://localhost:8000")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+# ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
+ALLOWED_HOSTS = config("DJANGO_ALLOWED_HOSTS", default="localhost,127.0.0.1").split(",") # type: ignore[attr-defined]
 
+CSRF_TRUSTED_ORIGINS = ["https://django-app-686886795635.us-central1.run.app"]
 
 # Application definition
 
@@ -58,7 +61,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 ROOT_URLCONF = 'oaklab.urls'
 
@@ -86,11 +92,14 @@ WSGI_APPLICATION = 'oaklab.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': config('DB_NAME', default='kcluster'),
+        'USER': config('DB_USER', default='oakuser'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST', default='/cloudsql/kcluster-interface:us-central1:oaklab-db'),
+        'PORT': '',  # Leave blank for Unix socket
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -140,18 +149,21 @@ CELERY_TASK_ROUTES = {
 }
 CELERY_TASK_DEFAULT_QUEUE = 'default'
 
+GCS_BUCKET_NAME = "kcluster-storage"
+# FOLLOWING LINE NOT NEEDED IN PRODUCTION
+GOOGLE_APPLICATION_CREDENTIALS = os.path.join(BASE_DIR, 'service-key.json')
 # Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Static files
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-# STATIC_URL = 'static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

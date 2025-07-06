@@ -1,14 +1,23 @@
-from celery import shared_task
-from django.core.mail import send_mail
-from django.conf import settings
-from django.utils import timezone
-from .models import TaskSubmission
-from .utils import convert_file_to_jsonl_data, call_kc_api, save_results_to_csv, save_jsonl_file
+
+from google.cloud import storage
 import logging
+import os
+import sys
+import time
+
+import django
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'oaklab.settings')
+django.setup()
+
+from kc_app.models import TaskSubmission  # Use actual app name
+from kc_app.utils import download_from_gcs, upload_to_gcs
+from django.conf import settings
+from django.core.mail import send_mail
+from django.utils import timezone
+from job.utils import convert_file_to_jsonl_data, call_kc_api, save_results_to_csv, save_jsonl_file
 
 logger = logging.getLogger(__name__)
 
-@shared_task
 def process_kc_task(task_id):
     """
     Fast preparation work - can run in parallel
@@ -20,21 +29,25 @@ def process_kc_task(task_id):
         
         # Convert file (fast operation)
         logger.info(f"Converting file for task {task_id}")
-        jsonl_data = convert_file_to_jsonl_data(task.uploaded_file.path)
+        local_input_path = f"/tmp/task_{task_id}_inputfile"
+
+        # Step 2: Download from GCS
+        download_from_gcs(task.gcs_input_blob, local_input_path)
+
+        # Step 3: Now use the file like normal
+        jsonl_data = convert_file_to_jsonl_data(local_input_path)
         task.status = 'converted'
         task.save()
         
         # Save JSONL file (fast operation)
         logger.info(f"Saving JSONL file for task {task_id}")
         jsonl_path = save_jsonl_file(jsonl_data, task_id)
-        task.json_file.name = jsonl_path
+        upload_to_gcs(jsonl_path, task.gcs_json_blob)
         task.status = 'queued'  # Now queued for API processing
         task.save()
         
-        # Send to API queue - this will wait its turn
-        print("About to call the process")
-        process_kc_api.delay(task_id, jsonl_data)
-        print("Processed")
+        return jsonl_data
+
         
     except Exception as e:
         logger.error(f"Task {task_id} preparation failed: {str(e)}")
@@ -45,8 +58,7 @@ def process_kc_task(task_id):
 
         send_failure_email(task)
 
-@shared_task(bind=True)
-def process_kc_api(self, task_id, jsonl_data):
+def process_kc_api(task_id, jsonl_data):
     """
     Slow API work - runs one at a time
     """
@@ -61,12 +73,14 @@ def process_kc_api(self, task_id, jsonl_data):
         
         # The slow API call
         kc_results = call_kc_api(jsonl_data)
+        task.gcs_output_blob = f"results/task_{task_id}_output.csv"
+        task.save()
         
         # Save results
         logger.info(f"Saving results for task {task_id}")
         csv_path = save_results_to_csv(kc_results, task_id)
+        upload_to_gcs(csv_path, task.gcs_output_blob)
         
-        task.output_csv.name = csv_path
         task.status = 'completed'
         task.completed_at = timezone.now()
         task.save()
@@ -138,3 +152,14 @@ def send_failure_email(task):
         )
     except Exception as e:
         logger.error(f"Failed to send failure email for task {task.id}: {str(e)}")
+
+
+def run():
+    task_id = os.environ.get("TASK_ID")
+    jsonl_data = process_kc_task(task_id)
+    print("Converted to jsonl file successfully. Now calling API")
+    process_kc_api(task_id, jsonl_data)
+    print("API returned")
+    
+if __name__ == "__main__":
+    run()
