@@ -231,6 +231,7 @@ def convert_file_to_jsonl_data(file_path: str) -> List[Dict[str, Any]]:
             try:
                 # Read CSV with error handling
                 df = pd.read_csv(file_path, encoding='utf-8')
+                print("Top of dataframe: ", df.head())
                 if df.empty:
                     raise FileValidationError("CSV file is empty")
                 
@@ -403,6 +404,7 @@ def save_results_to_csv(kc_results, task_id, output_dir="/tmp/"):
     csv_path = os.path.join(output_dir, filename)
     
     # Save directly to the path
+    print("Path to final csv", csv_path)
     df.to_csv(csv_path, index=False)
     
     return csv_path

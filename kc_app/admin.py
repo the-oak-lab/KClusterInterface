@@ -12,7 +12,7 @@ class TaskSubmissionAdmin(admin.ModelAdmin):
     list_display = ['id', 'teacher', 'filename', 'status', 'created_at', 'completed_at']
     list_filter = ['status', 'created_at']
     search_fields = ['teacher__email', 'teacher__first_name', 'teacher__last_name']
-    readonly_fields = ['celery_task_id', 'created_at', 'completed_at']
+    readonly_fields = ['created_at', 'completed_at']
 
 @admin.register(KCModel)
 class KCModelAdmin(admin.ModelAdmin):

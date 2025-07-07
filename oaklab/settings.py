@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from decouple import config
+import environ
 from google.cloud import storage
 from pathlib import Path
 
@@ -97,7 +98,7 @@ DATABASES = {
         'USER': config('DB_USER', default='oakuser'),
         'PASSWORD': config('DB_PASSWORD'),
         'HOST': config('DB_HOST', default='/cloudsql/kcluster-interface:us-central1:oaklab-db'),
-        'PORT': '',  # Leave blank for Unix socket
+        'PORT':  config('DB_PORT', default='5432'),  # Leave blank for Unix socket
     }
 }
 
@@ -135,19 +136,6 @@ LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/dashboard'
 LOGOUT_REDIRECT_URL = '/'
 
-
-# Celery Configuration
-CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://localhost:6379/0')
-CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default='redis://localhost:6379/0')
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = 'America/New_York'
-CELERY_TASK_ROUTES = {
-    'kc_app.tasks.process_kc_task': {'queue': 'file_processing'},
-    'kc_app.tasks.process_kc_api': {'queue': 'api_calls'},
-}
-CELERY_TASK_DEFAULT_QUEUE = 'default'
 
 GCS_BUCKET_NAME = "kcluster-storage"
 # FOLLOWING LINE NOT NEEDED IN PRODUCTION

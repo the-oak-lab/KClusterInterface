@@ -13,6 +13,7 @@ from kc_app.models import TaskSubmission  # Use actual app name
 from kc_app.utils import download_from_gcs, upload_to_gcs
 from django.conf import settings
 from django.core.mail import send_mail
+from django.db import transaction
 from django.utils import timezone
 from job.utils import convert_file_to_jsonl_data, call_kc_api, save_results_to_csv, save_jsonl_file
 
@@ -26,25 +27,32 @@ def process_kc_task(task_id):
         task = TaskSubmission.objects.get(id=task_id)
         task.status = 'uploaded'
         task.save()
+        transaction.commit()
+        
         
         # Convert file (fast operation)
         logger.info(f"Converting file for task {task_id}")
-        local_input_path = f"/tmp/task_{task_id}_inputfile"
 
         # Step 2: Download from GCS
-        download_from_gcs(task.gcs_input_blob, local_input_path)
+        local_path = download_from_gcs(task.gcs_input_blob, "/tmp")
+        print("Local Path: ", local_path)
 
         # Step 3: Now use the file like normal
-        jsonl_data = convert_file_to_jsonl_data(local_input_path)
+        jsonl_data = convert_file_to_jsonl_data(local_path)
         task.status = 'converted'
+        print("Converted Successfully")
         task.save()
+        transaction.commit()
         
         # Save JSONL file (fast operation)
         logger.info(f"Saving JSONL file for task {task_id}")
         jsonl_path = save_jsonl_file(jsonl_data, task_id)
+        task.gcs_json_blob =  f"processed/task_{task_id}_processed.jsonl"
+        task.save()
         upload_to_gcs(jsonl_path, task.gcs_json_blob)
         task.status = 'queued'  # Now queued for API processing
         task.save()
+        transaction.commit()
         
         return jsonl_data
 
@@ -55,6 +63,7 @@ def process_kc_task(task_id):
         task.status = 'failed'
         task.error_message = str(e)
         task.save()
+        transaction.commit()
 
         send_failure_email(task)
 
@@ -69,6 +78,7 @@ def process_kc_api(task_id, jsonl_data):
         # This is when actual processing starts
         task.status = 'processing'
         task.save()
+        transaction.commit()
         logger.info(f"Starting API call for task {task_id}")
         
         # The slow API call
@@ -84,6 +94,7 @@ def process_kc_api(task_id, jsonl_data):
         task.status = 'completed'
         task.completed_at = timezone.now()
         task.save()
+        transaction.commit()
         
         send_completion_email(task)
         logger.info(f"Task {task_id} completed successfully")
@@ -94,6 +105,7 @@ def process_kc_api(task_id, jsonl_data):
         task.status = 'failed'
         task.error_message = str(e)
         task.save()
+        transaction.commit()
         send_failure_email(task)
         raise e  # Re-raise so Celery knows it failed
     

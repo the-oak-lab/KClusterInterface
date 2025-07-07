@@ -8,9 +8,16 @@ from .models import TeacherUser, TaskSubmission, KCModel
 from .forms import TeacherRegistrationForm, FileUploadForm
 from .utils import upload_to_gcs, download_from_gcs
 from django.conf import settings
-import subprocess
+import json
+import logging
+import os
 from google.cloud import storage
+from google.auth import default
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
 from datetime import datetime, timedelta, timezone
+
+logger = logging.getLogger(__name__)
 
 def home(request):
     """Welcome page"""
@@ -52,19 +59,35 @@ def dashboard(request):
     return render(request, 'dashboard.html', context)
 
 def process_file(task_id: int):
-    # gcs_input_path: user_uploads/filename.?
-    # gcs_intermediate_path: converted/filename_converted.jsonl
-    # gcs_output_path: pmi/filename.?
-    # gcs_output_2: concepts/filename.?
-    job_name = "process-question-file"
+    credentials, _ = default()
+    # Use the Cloud Run Admin API v2
+    service = build("run", "v2", credentials=credentials)
+
+    project = "kcluster-interface"
     region = "us-central1"
-    cmd = [
-        "gcloud", "run", "jobs", "execute", job_name,
-        "--region", region,
-        "--wait",
-        f"--set-env-vars=GCS_BUCKET={settings.GCS_BUCKET_NAME},TASK_ID={task_id}",
-    ]
-    subprocess.Popen(cmd)
+    job_name = "process-question-file"
+    parent = f"projects/{project}/locations/{region}/jobs/{job_name}"
+
+    request_body = {
+        "overrides": {
+            "containerOverrides": [{
+                "env": [
+                    {
+                        "name": "TASK_ID",
+                        "value": str(task_id)
+                    }
+                ]
+            }]
+        }
+    }
+
+    request = service.projects().locations().jobs().run(
+        name=parent,
+        body={"overrides": request_body["overrides"]}
+    )
+
+    response = request.execute()
+    return response["name"]  # returns execution path
 
 @login_required
 def upload_questions(request):
@@ -83,7 +106,7 @@ def upload_questions(request):
             upload_to_gcs(local_path, gcs_filename)
 
             task.gcs_input_blob = gcs_filename
-            task.gcs_json_blob =  f"processed/task_{task.id}_processed.jsonl"
+            # task.gcs_json_blob =  f"processed/task_{task.id}_processed.jsonl"
             # task.gcs_output_blob = f"results/task_{task.id}_output.csv" # type: ignore[attr-defined]
             task.save()
             
@@ -116,19 +139,29 @@ def download_results(request, task_id):
         return redirect('task_status', task_id=task_id)
     
     try:
-        # Create GCS client and get the blob
-        client = storage.Client()
+        with open(os.environ["GCP_SERVICE_ACCOUNT_JSON"]) as f:
+            creds = json.load(f)
+        credentials = service_account.Credentials.from_service_account_info(creds)
+        client = storage.Client(credentials=credentials)
+
         bucket = client.bucket(settings.GCS_BUCKET_NAME)
         blob = bucket.blob(task.gcs_output_blob)
+        logger.info(f"Bucket: {settings.GCS_BUCKET_NAME}")
+        logger.info(f"Blob path: {task.gcs_output_blob}")
         
-        # Generate signed URL with timezone-aware datetime
+        # Check if blob exists
+        if not blob.exists():
+            messages.error(request, f'File not found: {task.gcs_output_blob}')
+            return redirect('task_status', task_id=task_id)
+        
         signed_url = blob.generate_signed_url(
             expiration=datetime.now(timezone.utc) + timedelta(hours=1),
             method='GET'
         )
         return redirect(signed_url)
     except Exception as e:
-        messages.error(request, 'Could not generate download link.')
+        logger.error(f"Error generating signed URL: {str(e)}")  # Log the actual error
+        messages.error(request, f'Could not generate download link: {str(e)}')
         return redirect('task_status', task_id=task_id)
 
 @login_required

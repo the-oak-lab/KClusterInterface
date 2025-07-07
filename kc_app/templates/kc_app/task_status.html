@@ -116,7 +116,7 @@
                         <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
                     </a>
                     
-                    {% if task.status == 'completed' and task.output_csv %}
+                    {% if task.status == 'completed' and task.gcs_output_blob %}
                         <a href="{% url 'download_results' task.id %}" class="btn btn-success">
                             <i class="fas fa-download me-2"></i>Download Results
                         </a>

@@ -9,12 +9,21 @@ import tempfile
 from typing import List, Dict, Any, Union
 from google.cloud import storage
 
-def download_from_gcs(gcs_output_blob, dest_path):
+def download_from_gcs(gcs_blob_path, dest_folder):
     client = storage.Client()
     bucket = client.bucket(settings.GCS_BUCKET_NAME)
-    blob = bucket.blob(gcs_output_blob)
-    blob.download_to_filename(dest_path)
-    return blob.public_url
+    blob = bucket.blob(gcs_blob_path)
+    
+    # Extract filename from the GCS blob path
+    filename = os.path.basename(gcs_blob_path)
+    
+    # Full local path
+    local_file_path = os.path.join(dest_folder, filename)
+    
+    # Download the file
+    blob.download_to_filename(local_file_path)
+    
+    return local_file_path
 
 def upload_to_gcs(local_path, gcs_filename):
     client = storage.Client()
