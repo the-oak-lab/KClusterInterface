@@ -33,7 +33,8 @@ class TaskSubmission(models.Model):
 
     gcs_input_blob = models.CharField(max_length=500, blank=True)   # e.g., "uploads/file123.json"
     gcs_json_blob = models.CharField(max_length=500, blank=True)    # e.g., "processed/file123_processed.jsonl"
-    gcs_output_blob = models.CharField(max_length=500, blank=True)  # e.g., "results/file123_output.jsonl"
+    gcs_output_concept_blob = models.CharField(max_length=500, blank=True)  # e.g., "concepts/task123_concepts.jsonl"
+    gcs_output_pmi_blob = models.CharField(max_length=500, blank=True)  # e.g., "pmis/task123_pmis.jsonl"
     
     # output_csv = models.FileField(upload_to='results/', blank=True, null=True)
 
@@ -41,7 +42,8 @@ class TaskSubmission(models.Model):
     error_message = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(blank=True, null=True)
-    job_id = models.CharField(max_length=255, blank=True)
+    # job_handle = models.CharField(max_length=255, blank=True) # what is the handle again?
+    job_length = models.IntegerField(blank=True, null=True)
     
     class Meta:
         ordering = ['-created_at']

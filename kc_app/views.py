@@ -63,7 +63,7 @@ def process_file(task_id: int):
     # Use the Cloud Run Admin API v2
     service = build("run", "v2", credentials=credentials)
 
-    project = "kcluster-interface"
+    project = "hcii-carvalho-gara-2024"
     region = "us-central1"
     job_name = "process-question-file"
     parent = f"projects/{project}/locations/{region}/jobs/{job_name}"
@@ -134,7 +134,7 @@ def download_results(request, task_id):
     teacher = get_object_or_404(TeacherUser, user=request.user)
     task = get_object_or_404(TaskSubmission, id=task_id, teacher=teacher)
     
-    if task.status != 'completed' or not task.gcs_output_blob:
+    if task.status != 'completed' or not task.gcs_output_concept_blob:
         messages.error(request, 'Results are not available for download.')
         return redirect('task_status', task_id=task_id)
     
@@ -145,13 +145,13 @@ def download_results(request, task_id):
         client = storage.Client(credentials=credentials)
 
         bucket = client.bucket(settings.GCS_BUCKET_NAME)
-        blob = bucket.blob(task.gcs_output_blob)
+        blob = bucket.blob(task.gcs_output_concept_blob)
         logger.info(f"Bucket: {settings.GCS_BUCKET_NAME}")
-        logger.info(f"Blob path: {task.gcs_output_blob}")
+        logger.info(f"Blob path: {task.gcs_output_concept_blob}")
         
         # Check if blob exists
         if not blob.exists():
-            messages.error(request, f'File not found: {task.gcs_output_blob}')
+            messages.error(request, f'File not found: {task.gcs_output_concept_blob}')
             return redirect('task_status', task_id=task_id)
         
         signed_url = blob.generate_signed_url(
@@ -192,7 +192,7 @@ def ajax_task_status(request, task_id):
         'status': task.status,
         'error_message': task.error_message,
         'completed_at': task.completed_at.isoformat() if task.completed_at else None,
-        'has_results': bool(task.gcs_output_blob),
+        'has_results': bool(task.gcs_output_concept_blob),
     })
 
 

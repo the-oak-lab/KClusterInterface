@@ -38,7 +38,7 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 # ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
 ALLOWED_HOSTS = config("DJANGO_ALLOWED_HOSTS", default="localhost,127.0.0.1").split(",") # type: ignore[attr-defined]
 
-CSRF_TRUSTED_ORIGINS = ["https://django-app-686886795635.us-central1.run.app"]
+CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", default="localhost,127.0.0.1").split(",") # type: ignore[attr-defined]
 
 # Application definition
 
@@ -97,7 +97,7 @@ DATABASES = {
         'NAME': config('DB_NAME', default='kcluster'),
         'USER': config('DB_USER', default='oakuser'),
         'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST', default='/cloudsql/kcluster-interface:us-central1:oaklab-db'),
+        'HOST': config('DB_HOST', default='/cloudsql/hcii-carvalho-gara-2024:us-central1:kcluster-interface'),
         'PORT':  config('DB_PORT', default='5432'),  # Leave blank for Unix socket
     }
 }
@@ -137,7 +137,7 @@ LOGIN_REDIRECT_URL = '/dashboard'
 LOGOUT_REDIRECT_URL = '/'
 
 
-GCS_BUCKET_NAME = "kcluster-storage"
+GCS_BUCKET_NAME = config("GCS_BUCKET", default= "kcluster-bucket")
 # FOLLOWING LINE NOT NEEDED IN PRODUCTION
 GOOGLE_APPLICATION_CREDENTIALS = os.path.join(BASE_DIR, 'service-key.json')
 # Media files
@@ -169,7 +169,7 @@ EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@kcproject.com')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='kcluster.oaklab@gmail.com')
 
 # File Upload Settings
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB

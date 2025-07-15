@@ -1,6 +1,6 @@
 import json
 import pandas as pd
-import requests
+import logging
 from django.conf import settings
 import os
 from typing import List, Dict, Any, Union
@@ -291,37 +291,6 @@ def convert_file_to_jsonl_data(file_path: str) -> List[Dict[str, Any]]:
     
 
 def call_kc_api_old(jsonl_data):
-    """Call the KC identification API with JSONL data"""
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': f'Bearer {settings.KC_API_TOKEN}' if settings.KC_API_TOKEN else ''
-    }
-    
-    # Send the data - adjust this based on what your API expects
-    # Option 1: Send as JSON array
-    response = requests.post(
-        settings.KC_API_URL,
-        json={'questions': jsonl_data},
-        headers=headers,
-        timeout=300
-    )
-    
-    # Option 2: If API expects raw JSONL string, use this instead:
-    # headers['Content-Type'] = 'application/x-jsonlines'
-    # jsonl_string = '\n'.join(json.dumps(item) for item in jsonl_data)
-    # response = requests.post(
-    #     settings.KC_API_URL,
-    #     data=jsonl_string,
-    #     headers=headers,
-    #     timeout=300
-    # )
-    
-    if response.status_code != 200:
-        raise Exception(f"API request failed: {response.status_code} - {response.text}")
-    
-    return response.json()
-
-def call_kc_api(jsonl_data):
     """
     Mock KC API call - returns your existing CSV data
     Replace this with real API call when ready
@@ -380,7 +349,6 @@ def call_kc_api(jsonl_data):
         }
     }
 
-
 def save_jsonl_file(data, task_id, output_dir="/tmp/"):
     """Save data as JSONL file for processing records"""
     # Create full file path
@@ -394,10 +362,9 @@ def save_jsonl_file(data, task_id, output_dir="/tmp/"):
     
     return jsonl_path
 
-def save_results_to_csv(kc_results, task_id, output_dir="/tmp/"):
+def save_results_to_csv(df, task_id, output_dir="/tmp/"):
     """Save KC results to CSV file in specified directory"""
     # Create DataFrame from results
-    df = pd.DataFrame(kc_results.get('data', []))
     
     # Create full file path
     filename = f'kc_results_{task_id}.csv'

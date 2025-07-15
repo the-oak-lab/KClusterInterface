@@ -13,5 +13,7 @@ celerybeat-schedule
 celerybeat-schedule-shm
 celerybeat-schedule-wal
 service-key.json
+service-key-old.json
 old.env
 env.yaml
+external
