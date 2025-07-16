@@ -117,8 +117,11 @@
                     </a>
                     
                     {% if task.status == 'completed' and task.gcs_output_concept_blob %}
-                        <a href="{% url 'download_results' task.id %}" class="btn btn-success">
-                            <i class="fas fa-download me-2"></i>Download Results
+                        <a href="{% url 'download_results' task.id 'concepts' %}" class="btn btn-success">
+                            <i class="fas fa-download me-2"></i>Download Concepts
+                        </a>
+                        <a href="{% url 'download_results' task.id 'kcs' %}" class="btn btn-success">
+                            <i class="fas fa-download me-2"></i>Download KCs
                         </a>
                         <a href="{% url 'next_steps' task.id %}" class="btn btn-primary">
                             <i class="fas fa-arrow-right me-2"></i>Next Steps

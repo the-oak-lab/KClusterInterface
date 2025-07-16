@@ -141,8 +141,8 @@
                                                 <a href="{% url 'task_status' task.id %}" class="btn btn-outline-primary">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
-                                                {% if task.status == 'completed' and task.gcs_output_concept_blob %}
-                                                    <a href="{% url 'download_results' task.id %}" class="btn btn-outline-success">
+                                                {% if task.status == 'completed' and task.gcs_output_kc_blob %}
+                                                    <a href="{% url 'download_results' task.id 'kcs' %}" class="btn btn-outline-success">
                                                         <i class="fas fa-download"></i>
                                                     </a>
                                                     <a href="{% url 'next_steps' task.id %}" class="btn btn-outline-info">

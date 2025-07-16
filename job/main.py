@@ -42,6 +42,8 @@ def process_kc_task(task_id):
     Fast preparation work - can run in parallel
     """
     try:
+        logger.info(f"Attempting to access task {task_id} from database")
+        flush_logs()
         task = TaskSubmission.objects.get(id=task_id)
         task.status = 'uploaded'
         task.save()
@@ -49,7 +51,7 @@ def process_kc_task(task_id):
         
         
         # Convert file (fast operation)
-        logger.info(f"Converting file for task {task_id}")
+        logger.info(f"Upload successful.  Converting file for task {task_id}")
 
         # Step 2: Download from GCS
         local_path = download_from_gcs(task.gcs_input_blob, "/tmp")
@@ -123,10 +125,10 @@ def process_kc_api(task_id, jsonl_data):
 
         # Call KCluster
         kcluster = KCluster(questions, task_id)
-        concept_df, kcluster_df = kcluster.create_new_kc() # what is kcluster df again?
+        concept_df, kcluster_df = kcluster.create_new_kc()
 
         task.gcs_output_concept_blob= f"concepts/task_{task_id}_concepts.csv"
-        task.gcs_output_pmi_blob= f"kclusters/task_{task_id}_kcluster.csv"
+        task.gcs_output_kc_blob= f"kclusters/task_{task_id}_kcluster.csv"
 
         # Save results
         logger.info(f"Saving results for task {task_id}")
@@ -134,7 +136,7 @@ def process_kc_api(task_id, jsonl_data):
         concept_path = save_results_to_csv(concept_df, task_id)
         pmi_path = save_results_to_csv(kcluster_df, task_id)
         upload_to_gcs(concept_path, task.gcs_output_concept_blob)
-        upload_to_gcs(pmi_path, task.gcs_output_pmi_blob)
+        upload_to_gcs(pmi_path, task.gcs_output_kc_blob)
         
         task.status = 'completed'
         task.completed_at = timezone.now()
@@ -214,6 +216,8 @@ def send_failure_email(task):
 
 def run():
     task_id = os.environ.get("TASK_ID")
+    logger.info(f"Starting processing for task {task_id}")
+    flush_logs()
     jsonl_data = process_kc_task(task_id)
     print("Converted to jsonl file successfully. Now calling API", flush=True)
     process_kc_api(task_id, jsonl_data)

@@ -129,7 +129,7 @@ def task_status(request, task_id):
     return render(request, 'task_status.html', {'task': task})
 
 @login_required
-def download_results(request, task_id):
+def download_results(request, task_id, result_type):
     """Download the results CSV file"""
     teacher = get_object_or_404(TeacherUser, user=request.user)
     task = get_object_or_404(TaskSubmission, id=task_id, teacher=teacher)
@@ -145,13 +145,17 @@ def download_results(request, task_id):
         client = storage.Client(credentials=credentials)
 
         bucket = client.bucket(settings.GCS_BUCKET_NAME)
-        blob = bucket.blob(task.gcs_output_concept_blob)
         logger.info(f"Bucket: {settings.GCS_BUCKET_NAME}")
-        logger.info(f"Blob path: {task.gcs_output_concept_blob}")
+        if result_type == 'concepts':
+            blob = bucket.blob(task.gcs_output_concept_blob)
+            logger.info(f"Blob path: {task.gcs_output_concept_blob}")
+        else:
+            blob = bucket.blob(task.gcs_output_kc_blob)
+            logger.info(f"Blob path: {task.gcs_output_kc_blob}")
         
         # Check if blob exists
         if not blob.exists():
-            messages.error(request, f'File not found: {task.gcs_output_concept_blob}')
+            messages.error(request, f'File not found: {blob.path}')
             return redirect('task_status', task_id=task_id)
         
         signed_url = blob.generate_signed_url(
@@ -195,4 +199,11 @@ def ajax_task_status(request, task_id):
         'has_results': bool(task.gcs_output_concept_blob),
     })
 
+def kill_task(request, task_id):
+    teacher = get_object_or_404(TeacherUser, user=request.user)
+    task = get_object_or_404(TaskSubmission, id=task_id, teacher=teacher)
 
+    if task:
+        task.delete()
+
+    return redirect('dashboard')

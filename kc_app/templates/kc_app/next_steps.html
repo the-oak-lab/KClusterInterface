@@ -29,7 +29,10 @@
                     <div class="col-md-6">
                         <h6><i class="fas fa-download me-2"></i>Available Downloads</h6>
                         <div class="d-grid gap-2">
-                            <a href="{% url 'download_results' task.id %}" class="btn btn-success">
+                            <a href="{% url 'download_results' task.id 'concepts' %}" class="btn btn-success">
+                                <i class="fas fa-file-csv me-2"></i>Download Concepts (CSV)
+                            </a>
+                            <a href="{% url 'download_results' task.id 'kcs' %}" class="btn btn-success">
                                 <i class="fas fa-file-csv me-2"></i>Download KC Results (CSV)
                             </a>
                             {% if kc_model.model_file %}

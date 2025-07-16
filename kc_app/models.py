@@ -33,8 +33,8 @@ class TaskSubmission(models.Model):
 
     gcs_input_blob = models.CharField(max_length=500, blank=True)   # e.g., "uploads/file123.json"
     gcs_json_blob = models.CharField(max_length=500, blank=True)    # e.g., "processed/file123_processed.jsonl"
-    gcs_output_concept_blob = models.CharField(max_length=500, blank=True)  # e.g., "concepts/task123_concepts.jsonl"
-    gcs_output_pmi_blob = models.CharField(max_length=500, blank=True)  # e.g., "pmis/task123_pmis.jsonl"
+    gcs_output_concept_blob = models.CharField(max_length=500, blank=True)  # e.g., "concepts/task_123_concepts.jsonl"
+    gcs_output_kc_blob = models.CharField(max_length=500, blank=True)  # e.g., "kcs/task_123_kcs.jsonl"
     
     # output_csv = models.FileField(upload_to='results/', blank=True, null=True)
 
