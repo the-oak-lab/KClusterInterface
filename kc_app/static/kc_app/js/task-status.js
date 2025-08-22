@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     default:
                         alertClass = 'alert-info';
                         icon = 'fas fa-upload';
-                        message = 'Uploaded: Your file was uploaded successfully';
+                        message = 'Uploaded: Your file was uploaded successfully and is waiting for initial processing.';
                 }
                 
                 statusContainer.innerHTML = `
@@ -55,15 +55,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Check if task is still processing
-    if (currentStatus === 'processing' || currentStatus === 'queued' || currentStatus === "uploaded" || currentStatus === "converted") {
-        // Update every 5 seconds
-        const interval = setInterval(() => {
+    if (currentStatus !== 'failed' && currentStatus !== 'completed') {
+        const checkStatus = () => {
             updateStatus();
-        }, 5000);
-        
-        // Stop polling after 10 minutes
-        setTimeout(() => {
-            clearInterval(interval);
-        }, 600000);
+            console.log("Rechecking Status");
+            
+            // Stop polling when task is done
+            if (currentStatus === 'failed' || currentStatus === 'completed') {
+                clearInterval(interval);
+            }
+        };
+        // Update every 10 seconds
+        const interval = setInterval(checkStatus, 10000);
     }
 });

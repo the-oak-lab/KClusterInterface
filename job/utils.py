@@ -288,66 +288,6 @@ def convert_file_to_jsonl_data(file_path: str) -> List[Dict[str, Any]]:
     except Exception as e:
         # Convert other exceptions to validation errors with context
         raise FileValidationError(f"Error processing {file_format.upper()} file: {str(e)}")
-    
-
-def call_kc_api_old(jsonl_data):
-    """
-    Mock KC API call - returns your existing CSV data
-    Replace this with real API call when ready
-    """
-    import pandas as pd
-    import os
-    import time
-    import random
-    from django.conf import settings
-    
-    # Simulate realistic processing time
-    num_questions = len(jsonl_data)
-    
-    # Base processing time (10-30 seconds) + time per question (2-5 seconds each)
-    base_delay = random.uniform(10, 30)
-    per_question_delay = random.uniform(2, 5) * num_questions
-    total_delay = base_delay + per_question_delay
-    
-    # Cap the delay at 2 minutes for demo purposes
-    total_delay = min(total_delay, 1000)
-    
-    print(f"🧠 Mock KC API: Processing {num_questions} questions...")
-    print(f"⏱️  Estimated processing time: {total_delay:.1f} seconds")
-    
-    # Sleep to simulate processing
-    # DELETE THIS IN PRODUCTION
-    time.sleep(total_delay)
-    num = random.random()
-    print("Random number: ", num)
-    if num > .75:
-        assert(False)
-    
-    
-    # Path to your existing CSV file with KC results
-    # Put your CSV file in the project root or media folder
-    mock_csv_path = os.path.join(settings.BASE_DIR, 'mock_kc_results.csv')
-    
-    # Alternative: if you put it in media folder
-    # mock_csv_path = os.path.join(settings.MEDIA_ROOT, 'mock_kc_results.csv')
-    
-    if not os.path.exists(mock_csv_path):
-        raise FileNotFoundError(f"Mock CSV file not found at: {mock_csv_path}")
-    # Read your existing CSV file
-    df = pd.read_csv(mock_csv_path)
-    
-    # Convert to the expected format (list of dictionaries)
-    mock_results = df.to_dict('records')
-    
-    # Return in the expected API response format
-    return {
-        'data': mock_results,
-        'metadata': {
-            'total_questions': len(mock_results),
-            'processing_time': 'mocked',
-            'source': 'mock_csv_file'
-        }
-    }
 
 def save_jsonl_file(data, task_id, output_dir="/tmp/"):
     """Save data as JSONL file for processing records"""

@@ -207,3 +207,23 @@ def kill_task(request, task_id):
         task.delete()
 
     return redirect('dashboard')
+
+def reprocess_task(request, task_id):
+    teacher = get_object_or_404(TeacherUser, user=request.user)
+    task = get_object_or_404(TaskSubmission, id=task_id, teacher=teacher)
+
+    if task.status != 'completed':
+        task.status = 'processing'
+        task.save()
+        process_file(task_id)
+
+    return redirect('dashboard')
+
+def mark_failed(request, task_id):
+    teacher = get_object_or_404(TeacherUser, user=request.user)
+    task = get_object_or_404(TaskSubmission, id=task_id, teacher=teacher)
+
+    task.status = 'failed'
+    task.save()
+
+    return redirect('dashboard')

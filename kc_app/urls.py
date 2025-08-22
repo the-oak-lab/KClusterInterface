@@ -13,5 +13,7 @@ urlpatterns = [
     path('task/<int:task_id>/download/<str:result_type>/', views.download_results, name='download_results'),
     path('task/<int:task_id>/next-steps/', views.next_steps, name='next_steps'),
     path('ajax/task/<int:task_id>/status/', views.ajax_task_status, name='ajax_task_status'),
-    # path('kill-task/<int:task_id>', views.kill_task, name="kill_task")
+    path('kill-task/<int:task_id>', views.kill_task, name="kill_task"),
+    path('reprocess-task/<int:task_id>', views.reprocess_task, name="reprocess_task"),
+    path('mark-failed/<int:task_id>', views.mark_failed, name="mark_failed")
 ]
