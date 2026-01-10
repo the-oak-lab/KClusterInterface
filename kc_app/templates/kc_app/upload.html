@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
 
-{% block title %}Upload Questions - KC Analysis Platform{% endblock %}
+{% block title %}Upload - KC Analysis Platform{% endblock %}
 
 {% block head %}
 {% load static %}
@@ -10,133 +10,151 @@
 {% endblock %}
 
 {% block content %}
-<!-- <div class="row justify-content-center"> -->
-<div class = "container-fluid">
-    <!-- <div class="col-lg-8"> -->
-    <div class="row min-vh-100 g-4 justify-content-center">
-        <div class="col-lg-5">
-        <!-- Instructions -->
-            <div class="card mt-4">
-                <div class="card-header">
-                    <h6 class="mb-0">File Format Requirements</h6>
-                </div>
+<div class="container-fluid">
+    <!-- Mode Selection -->
+    <div class="row justify-content-center mt-4">
+        <div class="col-lg-8">
+            <div class="card shadow">
                 <div class="card-body">
-                    <!-- Card Tabs -->
-                    <ul class="nav nav-tabs" id="formatTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="excel-tab" data-bs-toggle="tab" data-bs-target="#excel-content" type="button" role="tab" aria-controls="excel-content" aria-selected="true">
-                                Excel Format
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="csv-tab" data-bs-toggle="tab" data-bs-target="#csv-content" type="button" role="tab" aria-controls="csv-content" aria-selected="false">
-                                CSV Format
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="json-tab" data-bs-toggle="tab" data-bs-target="#json-content" type="button" role="tab" aria-controls="json-content" aria-selected="false">
-                                JSON Format
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="jsonl-tab" data-bs-toggle="tab" data-bs-target="#jsonl-content" type="button" role="tab" aria-controls="jsonl-content" aria-selected="false">
-                                JSONL Format
-                            </button>
-                        </li>
-                    </ul>
-                    <div class="tab-content mt-3" id="formatTabContent">
-                        <!-- Excel Tab -->
-                        <div class="tab-pane fade show active" id="excel-content" role="tabpanel" aria-labelledby="excel-tab">
-                            <h6>Excel Format Requirements</h6>
-                            <p class="text-muted">
-                                Microsoft Excel file (.xlsx or .xls). Only the first sheet will be processed.
-                            </p>
+                    <label for="uploadMode" class="form-label fw-bold fs-5">What would you like to do?</label>
+                    <select class="form-select form-select-lg" id="uploadMode">
+                        <option value="">-- Select an option --</option>
+                        <option value="questions-to-kcs">Upload questions and generate KCs</option>
+                        <option value="kcs-to-questions">Upload KCs and generate questions</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                            <h6 class="mt-3">Required Structure:</h6>
-                            <ul class="small">
-                                <li>Headers must be in the first row (row 1)</li>
-                                <li>Data starts from row 2</li>
-                                <li>Must contain the following columns: id, type, question</li>
-                                <li>Options for Multiple Choice Questions should be stored in separate columns, each beginning with "choice_";
-                                    Other types of questions should leave the choices columns blank.
+    <!-- Main Content Area (hidden until selection is made) -->
+    <div id="mainContent" style="display: none;">
+        <div class="row min-vh-100 g-4 justify-content-center">
+            <div class="col-lg-5">
+                <!-- Instructions Card -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h6 class="mb-0" id="instructionsTitle">File Format Requirements</h6>
+                    </div>
+                    <div class="card-body">
+                        <!-- Questions to KCs Instructions -->
+                        <div id="questions-to-kcs-instructions">
+                            <!-- Card Tabs -->
+                            <ul class="nav nav-tabs" id="formatTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="excel-tab" data-bs-toggle="tab" data-bs-target="#excel-content" type="button" role="tab" aria-controls="excel-content" aria-selected="true">
+                                        Excel Format
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="csv-tab" data-bs-toggle="tab" data-bs-target="#csv-content" type="button" role="tab" aria-controls="csv-content" aria-selected="false">
+                                        CSV Format
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="json-tab" data-bs-toggle="tab" data-bs-target="#json-content" type="button" role="tab" aria-controls="json-content" aria-selected="false">
+                                        JSON Format
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="jsonl-tab" data-bs-toggle="tab" data-bs-target="#jsonl-content" type="button" role="tab" aria-controls="jsonl-content" aria-selected="false">
+                                        JSONL Format
+                                    </button>
                                 </li>
                             </ul>
+                            <div class="tab-content mt-3" id="formatTabContent">
+                                <!-- Excel Tab -->
+                                <div class="tab-pane fade show active" id="excel-content" role="tabpanel" aria-labelledby="excel-tab">
+                                    <h6>Excel Format Requirements</h6>
+                                    <p class="text-muted">
+                                        Microsoft Excel file (.xlsx or .xls). Only the first sheet will be processed.
+                                    </p>
 
-                            <h6 class="mt-3">Supported Formats:</h6>
-                            <ul class="small">
-                                <li>.xlsx (Excel 2007+)</li>
-                                <li>.xls (Excel 97-2003)</li>
-                            </ul>
+                                    <h6 class="mt-3">Required Structure:</h6>
+                                    <ul class="small">
+                                        <li>Headers must be in the first row (row 1)</li>
+                                        <li>Data starts from row 2</li>
+                                        <li>Must contain the following columns: id, type, question</li>
+                                        <li>Options for Multiple Choice Questions should be stored in separate columns, each beginning with "choice_";
+                                            Other types of questions should leave the choices columns blank.
+                                        </li>
+                                    </ul>
 
-                            <h6 class="mt-3">Example</h6>
-                            <p class="small">**Note: <b>Bolded columns</b> are required.</p>
-                            <pre class="format-example">
+                                    <h6 class="mt-3">Supported Formats:</h6>
+                                    <ul class="small">
+                                        <li>.xlsx (Excel 2007+)</li>
+                                        <li>.xls (Excel 97-2003)</li>
+                                    </ul>
+
+                                    <h6 class="mt-3">Example</h6>
+                                    <p class="small">**Note: <b>Bolded columns</b> are required.</p>
+                                    <pre class="format-example">
 Row 1: |     <b>id</b>     |       <b>type</b>        | <b>question</b>        | choice_a | choice_b | choice_c| answerKey | Misc Fields |
 Row 2: | sciqa-2327 |  Multiple Choice  | Which is ...    | Diamond  |   Wool   |   Wood  |     b     |     ...     |
 Row 3: | sciqa-4389 | Fill in the Blank | When forces ... |          |          |         |  balanced |     ...     |</pre>
 
-                            <div class="download-btn">
-                                <a href="https://storage.googleapis.com/kcluster-bucket/templates/example.xlsx" class="btn btn-outline-success btn-sm">
-                                    <i class="bi bi-download"></i> Download Excel Template
-                                </a>
-                            </div>
-                        </div>
-                
-                        <!-- CSV Tab -->
-                        <div class="tab-pane fade" id="csv-content" role="tabpanel" aria-labelledby="csv-tab">
-                            <h6>CSV Format Requirements</h6>
-                            <p class="text-muted">
-                                Comma-separated values file with a header row containing column names. Must include a column with your questions.
-                            </p>
-                            
-                            <h6 class="mt-3">Required Structure:</h6>
-                            <ul class="small">
-                                <li>Header row in the first line</li>
-                                <li>UTF-8 encoding recommended</li>
-                                <li>Comma as delimiter (standard CSV format)</li>
-                                <li>Must contain the following columns: id, type, question</li>
-                                <li>Options for Multiple Choice Questions should be stored in separate columns, each beginning with "choice_";
-                                    Other types of questions should leave the choices columns blank.
-                                </li>
-                            </ul>
+                                    <div class="download-btn">
+                                        <a href="https://storage.googleapis.com/kcluster-bucket/templates/example.xlsx" class="btn btn-outline-success btn-sm">
+                                            <i class="bi bi-download"></i> Download Excel Template
+                                        </a>
+                                    </div>
+                                </div>
+                        
+                                <!-- CSV Tab -->
+                                <div class="tab-pane fade" id="csv-content" role="tabpanel" aria-labelledby="csv-tab">
+                                    <h6>CSV Format Requirements</h6>
+                                    <p class="text-muted">
+                                        Comma-separated values file with a header row containing column names. Must include a column with your questions.
+                                    </p>
+                                    
+                                    <h6 class="mt-3">Required Structure:</h6>
+                                    <ul class="small">
+                                        <li>Header row in the first line</li>
+                                        <li>UTF-8 encoding recommended</li>
+                                        <li>Comma as delimiter (standard CSV format)</li>
+                                        <li>Must contain the following columns: id, type, question</li>
+                                        <li>Options for Multiple Choice Questions should be stored in separate columns, each beginning with "choice_";
+                                            Other types of questions should leave the choices columns blank.
+                                        </li>
+                                    </ul>
 
-                            <h6 class="mt-3">Example:</h6>
-                            <p class="small">**Note: <b>Bolded columns</b> are required.</p>
-                            <pre class="format-example">
+                                    <h6 class="mt-3">Example:</h6>
+                                    <p class="small">**Note: <b>Bolded columns</b> are required.</p>
+                                    <pre class="format-example">
 Line 1: <b>id</b>,<b>type</b>,<b>question</b>,choice_a,choice_b,choice_c,answerKey,Misc Fields
 Line 2: sciqa-2327,Multiple Choice,Which is ...,Diamond,Wool,Metal,b
 Line 3: sciqa-4389,Fill in the Blank,When forces ...,,,,balanced,...</pre>
 
-                            <div class="download-btn">
-                                <a href="https://storage.googleapis.com/kcluster-bucket/templates/example.csv" class="btn btn-outline-primary btn-sm">
-                                    <i class="bi bi-download"></i> Download CSV Template
-                                </a>
-                            </div>
-                        </div>
+                                    <div class="download-btn">
+                                        <a href="https://storage.googleapis.com/kcluster-bucket/templates/example.csv" class="btn btn-outline-primary btn-sm">
+                                            <i class="bi bi-download"></i> Download CSV Template
+                                        </a>
+                                    </div>
+                                </div>
 
-                        <!-- JSON Tab -->
-                        <div class="tab-pane fade" id="json-content" role="tabpanel" aria-labelledby="json-tab">
-                            <h6>JSON Format Requirements</h6>
-                            <p class="text-muted">
-                                JavaScript Object Notation file containing an array of objects with consistent structure.
-                            </p>
+                                <!-- JSON Tab -->
+                                <div class="tab-pane fade" id="json-content" role="tabpanel" aria-labelledby="json-tab">
+                                    <h6>JSON Format Requirements</h6>
+                                    <p class="text-muted">
+                                        JavaScript Object Notation file containing an array of objects with consistent structure.
+                                    </p>
 
-                            <h6 class="mt-3">Required Structure:</h6>
-                            <p class="small">Fields marked with an asterisk (*) are required.</p>
-                            <ul class="small">
-                                <li>Root element must be an array</li>
-                                <li>Valid JSON syntax required</li>
-                                <li>Each object must contain the following properties: id, type, question</li>
-                                <li>Question text should be stored in a nested object</li>
-                                <ul>
-                                    <li>Question text stored as <code>"stem"</code></li>
-                                    <li><code>choices</code> is an array of objects, only included for MCQs</li>
-                                </ul>
-                            </ul>
+                                    <h6 class="mt-3">Required Structure:</h6>
+                                    <p class="small">Fields marked with an asterisk (*) are required.</p>
+                                    <ul class="small">
+                                        <li>Root element must be an array</li>
+                                        <li>Valid JSON syntax required</li>
+                                        <li>Each object must contain the following properties: id, type, question</li>
+                                        <li>Question text should be stored in a nested object</li>
+                                        <ul>
+                                            <li>Question text stored as <code>"stem"</code></li>
+                                            <li><code>choices</code> is an array of objects, only included for MCQs</li>
+                                        </ul>
+                                    </ul>
 
-                            <h6 class="mt-3">Example:</h6>
-                            <p class="small">Note: <b>Bolded fields</b> are required.</p>
-                            <pre class="format-example">
+                                    <h6 class="mt-3">Example:</h6>
+                                    <p class="small">Note: <b>Bolded fields</b> are required.</p>
+                                    <pre class="format-example">
 [
     {
         "<b>id</b>": "sciqa-2327",
@@ -169,32 +187,32 @@ Line 3: sciqa-4389,Fill in the Blank,When forces ...,,,,balanced,...</pre>
     }
 ]</pre>
 
-                            <div class="download-btn">
-                                <a href="https://storage.googleapis.com/kcluster-bucket/templates/example.json" class="btn btn-outline-info btn-sm">
-                                    <i class="bi bi-download"></i> Download JSON Template
-                                </a>
-                            </div>
-                        </div>
+                                    <div class="download-btn">
+                                        <a href="https://storage.googleapis.com/kcluster-bucket/templates/example.json" class="btn btn-outline-info btn-sm">
+                                            <i class="bi bi-download"></i> Download JSON Template
+                                        </a>
+                                    </div>
+                                </div>
 
-                        <!-- JSONL Tab -->
-                        <div class="tab-pane fade" id="jsonl-content" role="tabpanel" aria-labelledby="jsonl-tab">
-                            <h6>JSONL Format Requirements</h6>
-                            <p class="text-muted">
-                                JSON Lines format with one JSON object per line.
-                            </p>
+                                <!-- JSONL Tab -->
+                                <div class="tab-pane fade" id="jsonl-content" role="tabpanel" aria-labelledby="jsonl-tab">
+                                    <h6>JSONL Format Requirements</h6>
+                                    <p class="text-muted">
+                                        JSON Lines format with one JSON object per line.
+                                    </p>
 
-                            <h6 class="mt-3">Required Structure:</h6>
-                            <p class="small">Fields marked with an asterisk (*) are required.</p>
-                            <ul class="small">
-                                <li>One valid JSON object per line</li>
-                                <li>No commas between objects</li>
-                                <li>Each object should have consistent properties</li>
-                                <li>Newline character separates objects</li>
-                            </ul>
+                                    <h6 class="mt-3">Required Structure:</h6>
+                                    <p class="small">Fields marked with an asterisk (*) are required.</p>
+                                    <ul class="small">
+                                        <li>One valid JSON object per line</li>
+                                        <li>No commas between objects</li>
+                                        <li>Each object should have consistent properties</li>
+                                        <li>Newline character separates objects</li>
+                                    </ul>
 
-                            <h6 class="mt-3">Example:</h6>
-                            <p class="small">Note: Bolded fields are required.</p>
-                            <pre class="format-example">
+                                    <h6 class="mt-3">Example:</h6>
+                                    <p class="small">Note: Bolded fields are required.</p>
+                                    <pre class="format-example">
 # Note for actual jsonl files, each line in the file must be a complete, valid JSON object.
 # Each object is expanded here just for readability purposes
 {
@@ -228,93 +246,173 @@ Line 3: sciqa-4389,Fill in the Blank,When forces ...,,,,balanced,...</pre>
 }
 </pre>
 
-                            <div class="download-btn">
-                                <a href="https://storage.googleapis.com/kcluster-bucket/templates/example.jsonl" class="btn btn-outline-warning btn-sm">
-                                    <i class="bi bi-download"></i> Download JSONL Template
+                                    <div class="download-btn">
+                                        <a href="https://storage.googleapis.com/kcluster-bucket/templates/example.jsonl" class="btn btn-outline-warning btn-sm">
+                                            <i class="bi bi-download"></i> Download JSONL Template
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- KCs to Questions Instructions (placeholder for future customization) -->
+                        <div id="kcs-to-questions-instructions" style="display: none;">
+                            <p class="text-muted">Upload your KC file to generate questions.</p>
+                            <h6 class="mt-3">Required Structure:</h6>
+                            <ul class="small">
+                                <li>File should contain KC definitions</li>
+                                <li>Include KC identifiers and descriptions</li>
+                                <li>Supported formats: JSON, CSV, Excel</li>
+                            </ul>
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Detailed KC upload instructions coming soon!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload Area -->
+            <div class="col-lg-6">
+                <div class="card shadow mt-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0" id="uploadTitle">
+                            <i class="fas fa-upload me-2"></i>Upload Questions for KC Analysis
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-4" id="supportedFormats">
+                            <h6>Supported File Formats:</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-file-excel text-success me-2"></i>Excel files (.xlsx, .xls)</li>
+                                <li><i class="fas fa-file-csv text-success me-2"></i>CSV files (.csv)</li>
+                                <li><i class="fas fa-file-code text-success me-2"></i>JSON files (.json)</li>
+                                <li><i class="fas fa-file-code text-success me-2"></i>JSONL files (.jsonl)</li>
+                            </ul>
+                        </div>
+
+                        <form method="post" enctype="multipart/form-data" id="uploadForm">
+                            {% csrf_token %}
+                            
+                            <!-- Hidden field to track upload mode -->
+                            <input type="hidden" name="upload_mode" id="uploadModeInput" value="">
+
+                            <div class="mb-4">
+                                <label for="{{ form.uploaded_file.id_for_label }}" class="form-label fw-bold">Upload File</label>
+                                <div class="file-upload-area" id="fileUploadArea">
+                                    <button type="button" class="remove-file" id="removeFileBtn">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                    
+                                    <div class="upload-placeholder" id="uploadPlaceholder">
+                                        <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                        <p class="mb-3">Drag and drop your file here or click to browse</p>
+                                    </div>
+                                    
+                                    <div class="file-info" id="fileInfo">
+                                        <i class="fas fa-file fa-2x text-primary mb-2"></i>
+                                        <p class="mb-0"><strong id="fileName"></strong></p>
+                                        <p class="small text-muted" id="fileSize"></p>
+                                    </div>
+                                    
+                                    {{ form.uploaded_file }}
+                                </div>
+                                <div class="form-text mt-2">{{ form.uploaded_file.help_text }}</div>
+                            </div>
+
+                            <div class="alert alert-danger" id="errorAlert" style="display: none;">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <span id="errorMessage"></span>
+                            </div>
+
+                            {% if form.errors %}
+                                <div class="alert alert-danger">
+                                    {{ form.errors }}
+                                </div>
+                            {% endif %}
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                                    <i class="fas fa-upload me-2"></i><span id="submitBtnText">Upload and Process</span>
+                                </button>
+                                <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
                                 </a>
                             </div>
-                        </div>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- Upload Area -->
-        <div class="col-lg-6">
-            <div class="card shadow mt-4">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">
-                        <i class="fas fa-upload me-2"></i>Upload Questions for KC Analysis
-                    </h4>
-                </div>
-                <div class="card-body">
-                    <div class="mb-4">
-                        <h6>Supported File Formats:</h6>
-                        <ul class="list-unstyled">
-                            <li><i class="fas fa-file-excel text-success me-2"></i>Excel files (.xlsx, .xls)</li>
-                            <li><i class="fas fa-file-csv text-success me-2"></i>CSV files (.csv)</li>
-                            <li><i class="fas fa-file-code text-success me-2"></i>JSON files (.json)</li>
-                            <li><i class="fas fa-file-code text-success me-2"></i>JSONL files (.jsonl)</li>
-                        </ul>
-                    </div>
-
-                    <form method="post" enctype="multipart/form-data" id="uploadForm">
-                        {% csrf_token %}
-                        
-                        <!-- <div class="mb-4">
-                            <label class="form-label fw-bold">File Format</label>
-                            {{ form.file_format }}
-                            <div class="form-text">{{ form.file_format.help_text }}</div>
-                        </div> -->
-
-                        <div class="mb-4">
-                            <label for="{{ form.uploaded_file.id_for_label }}" class="form-label fw-bold">Upload File</label>
-                            <div class="file-upload-area" id="fileUploadArea">
-                                <button type="button" class="remove-file" id="removeFileBtn">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                                
-                                <div class="upload-placeholder" id="uploadPlaceholder">
-                                    <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
-                                    <p class="mb-3">Drag and drop your file here or click to browse</p>
-                                </div>
-                                
-                                <div class="file-info" id="fileInfo">
-                                    <i class="fas fa-file fa-2x text-primary mb-2"></i>
-                                    <p class="mb-0"><strong id="fileName"></strong></p>
-                                    <p class="small text-muted" id="fileSize"></p>
-                                </div>
-                                
-                                {{ form.uploaded_file }}
-                            </div>
-                            <div class="form-text mt-2">{{ form.uploaded_file.help_text }}</div>
-                        </div>
-
-                        <div class="alert alert-danger" id="errorAlert" style="display: none;">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            <span id="errorMessage"></span>
-                        </div>
-
-                        {% if form.errors %}
-                            <div class="alert alert-danger">
-                                {{ form.errors }}
-                            </div>
-                        {% endif %}
-
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
-                                <i class="fas fa-upload me-2"></i>Upload and Process
-                            </button>
-                            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
-                                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-    
     </div>
 </div>
+
+<script>
+// Handle mode selection
+document.getElementById('uploadMode').addEventListener('change', function() {
+    const mode = this.value;
+    const mainContent = document.getElementById('mainContent');
+    const uploadModeInput = document.getElementById('uploadModeInput');
+    
+    if (mode) {
+        // Show main content
+        mainContent.style.display = 'block';
+        uploadModeInput.value = mode;
+        
+        // Update content based on mode
+        if (mode === 'questions-to-kcs') {
+            updateContentForQuestionsToKCs();
+        } else if (mode === 'kcs-to-questions') {
+            updateContentForKCsToQuestions();
+        }
+    } else {
+        // Hide main content if no selection
+        mainContent.style.display = 'none';
+    }
+});
+
+function updateContentForQuestionsToKCs() {
+    // Update titles
+    document.getElementById('instructionsTitle').textContent = 'File Format Requirements';
+    document.getElementById('uploadTitle').innerHTML = '<i class="fas fa-upload me-2"></i>Upload Questions for KC Analysis';
+    document.getElementById('submitBtnText').textContent = 'Upload and Process';
+    
+    // Show/hide appropriate instructions
+    document.getElementById('questions-to-kcs-instructions').style.display = 'block';
+    document.getElementById('kcs-to-questions-instructions').style.display = 'none';
+    
+    // Update supported formats
+    document.getElementById('supportedFormats').innerHTML = `
+        <h6>Supported File Formats:</h6>
+        <ul class="list-unstyled">
+            <li><i class="fas fa-file-excel text-success me-2"></i>Excel files (.xlsx, .xls)</li>
+            <li><i class="fas fa-file-csv text-success me-2"></i>CSV files (.csv)</li>
+            <li><i class="fas fa-file-code text-success me-2"></i>JSON files (.json)</li>
+            <li><i class="fas fa-file-code text-success me-2"></i>JSONL files (.jsonl)</li>
+        </ul>
+    `;
+}
+
+function updateContentForKCsToQuestions() {
+    // Update titles
+    document.getElementById('instructionsTitle').textContent = 'KC File Requirements';
+    document.getElementById('uploadTitle').innerHTML = '<i class="fas fa-upload me-2"></i>Upload KCs to Generate Questions';
+    document.getElementById('submitBtnText').textContent = 'Upload and Generate Questions';
+    
+    // Show/hide appropriate instructions
+    document.getElementById('questions-to-kcs-instructions').style.display = 'none';
+    document.getElementById('kcs-to-questions-instructions').style.display = 'block';
+    
+    // Update supported formats
+    document.getElementById('supportedFormats').innerHTML = `
+        <h6>Supported File Formats:</h6>
+        <ul class="list-unstyled">
+            <li><i class="fas fa-file-excel text-success me-2"></i>Excel files (.xlsx, .xls)</li>
+            <li><i class="fas fa-file-csv text-success me-2"></i>CSV files (.csv)</li>
+            <li><i class="fas fa-file-code text-success me-2"></i>JSON files (.json)</li>
+        </ul>
+    `;
+}
+</script>
 {% endblock %}

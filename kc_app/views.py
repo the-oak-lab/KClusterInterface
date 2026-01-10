@@ -90,8 +90,8 @@ def process_file(task_id: int, task = "generate_kcs"):
     return response["name"]  # returns execution path
 
 @login_required
-def upload_questions(request):
-    """Upload questions file"""
+def upload_file(request):
+    """Upload file"""
     if request.method == 'POST':
         form = FileUploadForm(request.POST, request.FILES)
         if form.is_valid():

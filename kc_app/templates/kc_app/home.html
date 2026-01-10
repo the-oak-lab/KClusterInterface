@@ -13,7 +13,7 @@
                     <i class="fas fa-brain me-3"></i>Welcome to Perspicacious!
                 </h1>
                 <p class="lead mb-4">
-                    Automatically identify Knowledge Components from your questions using advanced AI algorithms.
+                    Automatically identify Knowledge Components or generate questions using advanced AI algorithms.
                 </p>
                 {% if not user.is_authenticated %}
                     <div class="mt-4">
@@ -26,8 +26,8 @@
                     </div>
                 {% else %}
                     <div class="mt-4">
-                        <a href="{% url 'upload_questions' %}" class="btn btn-light btn-lg me-3">
-                            <i class="fas fa-upload me-2"></i>Upload Questions
+                        <a href="{% url 'upload_file' %}" class="btn btn-light btn-lg me-3">
+                            <i class="fas fa-upload me-2"></i>
                         </a>
                         <a href="{% url 'dashboard' %}" class="btn btn-outline-light btn-lg">
                             <i class="fas fa-tachometer-alt me-2"></i>Dashboard
@@ -48,7 +48,7 @@
                             </div>
                             <h5 class="card-title">Easy Upload</h5>
                             <p class="card-text">
-                                Upload your questions in CSV, Excel, or JSON format. 
+                                Upload your file in CSV, Excel, or JSON format. 
                                 Our platform supports multiple file types for your convenience.
                             </p>
                         </div>
@@ -63,8 +63,8 @@
                             </div>
                             <h5 class="card-title">AI Processing</h5>
                             <p class="card-text">
-                                Advanced algorithms analyze your questions to automatically 
-                                identify Knowledge Components with high accuracy.
+                                Advanced algorithms analyze your file to automatically 
+                                identify Knowledge Components or generate questions with high accuracy.
                             </p>
                         </div>
                     </div>
@@ -78,8 +78,8 @@
                             </div>
                             <h5 class="card-title">Download Results</h5>
                             <p class="card-text">
-                                Get your results as a CSV file with original questions 
-                                plus identified Knowledge Components ready for use.
+                                After the processing is complete, you will get an email to 
+                                download your results as a CSV file ready for use.
                             </p>
                         </div>
                     </div>
@@ -102,22 +102,22 @@
                             <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
                                 <span class="fw-bold">2</span>
                             </div>
-                            <h6>Upload Questions</h6>
-                            <p class="text-muted">Upload your question file</p>
+                            <h6>Upload File</h6>
+                            <p class="text-muted">Upload your file</p>
                         </div>
                         <div class="col-md-3 text-center mb-4">
                             <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
                                 <span class="fw-bold">3</span>
                             </div>
                             <h6>AI Analysis</h6>
-                            <p class="text-muted">Our AI identifies KCs</p>
+                            <p class="text-muted">Our AI identifies KCs or generates questions</p>
                         </div>
                         <div class="col-md-3 text-center mb-4">
                             <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
                                 <span class="fw-bold">4</span>
                             </div>
                             <h6>Download Results</h6>
-                            <p class="text-muted">Get your KC analysis</p>
+                            <p class="text-muted">Examine the output </p>
                         </div>
                     </div>
                 </div>
