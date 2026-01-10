@@ -114,6 +114,9 @@ def process_kc_api(task_id, jsonl_data, resume=False, job=None):
                 completion_time_in_mins=60,
                 secs_per_batch=0.1
             )
+            task.job_handle = job.resource_name.split("/")[-1]
+            print("JOB HANDLE: ", task.job_handle)
+            task.save()
             launched_jobs = [{"job_id": task_id, "job_obj": job, "num_questions": len(questions)}]
 
         else:
@@ -172,7 +175,7 @@ def send_completion_email(task):
         You can download your results at: {settings.SITE_URL}/task/{task.id}/
         
         Best regards,
-        KC Analysis Team
+        Perspicacious Team
         """
         
         send_mail(

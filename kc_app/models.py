@@ -42,7 +42,7 @@ class TaskSubmission(models.Model):
     error_message = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(blank=True, null=True)
-    # job_handle = models.CharField(max_length=255, blank=True) # what is the handle again?
+    job_handle = models.CharField(max_length=255, blank=True) # what is the handle again?
     job_length = models.IntegerField(blank=True, null=True)
     
     class Meta:
