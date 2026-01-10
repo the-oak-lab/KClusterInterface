@@ -24,12 +24,17 @@ class TaskSubmission(models.Model):
         ('completed', 'Completed'),
         ('failed', 'Failed'),
     ]
+    TASK_TYPES = [
+        ('questions-to-kcs', 'KCGen'),
+        ('kcs-to-questions', 'QuestionGen'),
+    ]
     
     teacher = models.ForeignKey(TeacherUser, on_delete=models.CASCADE)
     uploaded_file = models.FileField(
         upload_to='uploads/',
         validators=[FileExtensionValidator(allowed_extensions=['csv', 'xlsx', 'xls', 'json', 'jsonl'])]
     )
+    task_type = models.CharField(max_length=100, choices=TASK_TYPES, default="questions-to-kcs")
 
     gcs_input_blob = models.CharField(max_length=500, blank=True)   # e.g., "uploads/file123.json"
     gcs_json_blob = models.CharField(max_length=500, blank=True)    # e.g., "processed/file123_processed.jsonl"
@@ -49,7 +54,7 @@ class TaskSubmission(models.Model):
         ordering = ['-created_at']
     
     def __str__(self):
-        return f"Task {self.id} - {self.teacher.email} - {self.status}" # type: ignore[attr-defined]
+        return f"{self.mode} Task {self.id} - {self.teacher.email} - {self.status}" # type: ignore[attr-defined]
     
     @property
     def filename(self):

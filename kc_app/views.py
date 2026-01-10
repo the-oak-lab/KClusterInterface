@@ -58,7 +58,7 @@ def dashboard(request):
     
     return render(request, 'dashboard.html', context)
 
-def process_file(task_id: int, task = "generate_kcs"):
+def process_file(task_id: int):
     credentials, _ = default()
     # Use the Cloud Run Admin API v2
     service = build("run", "v2", credentials=credentials)
@@ -94,10 +94,15 @@ def upload_file(request):
     """Upload file"""
     if request.method == 'POST':
         form = FileUploadForm(request.POST, request.FILES)
+        upload_mode = request.POST.get('upload_mode')
+        if upload_mode not in ['questions-to-kcs', 'kcs-to-questions']:
+            messages.error(request, f'Invalid task type: {upload_mode}')
+            return redirect('home')
         if form.is_valid():
             teacher = get_object_or_404(TeacherUser, user=request.user)
             task = form.save(commit=False)
             task.teacher = teacher
+            task.task_type = upload_mode
             task.save()
             
             # Save file in GCS
@@ -111,7 +116,7 @@ def upload_file(request):
             task.save()
             
             # Start Job
-            process_file(task.id)
+            # process_file(task.id)
             
             messages.success(request, f'File "{task.filename}" uploaded successfully! Processing has begun.')
             return redirect('task_status', task_id=task.id)
