@@ -58,7 +58,7 @@ def dashboard(request):
     
     return render(request, 'dashboard.html', context)
 
-def process_file(task_id: int):
+def process_file(task_id: int, task = "generate_kcs"):
     credentials, _ = default()
     # Use the Cloud Run Admin API v2
     service = build("run", "v2", credentials=credentials)
