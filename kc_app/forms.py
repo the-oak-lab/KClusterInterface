@@ -31,19 +31,21 @@ class TeacherRegistrationForm(UserCreationForm):
         return user
 
 class FileUploadForm(forms.ModelForm):
-    # FILE_FORMAT_CHOICES = [
-    #     ('csv', 'CSV'),
-    #     ('excel', 'Excel (XLSX/XLS)'),
-    #     ('json', 'JSON'),
-    #     ('jsonl', 'JSONL (JSON Lines)'),
-    # ]
+    TASK_TYPE_CHOICES = [
+        ('', '-- Select an option --'),
+        ('questions-to-kcs', 'Upload questions and receive KCs'),
+        ('kcs-to-questions', 'Upload Learning Objectives and receive questions'),
+    ]
     
-    # file_format = forms.ChoiceField(
-    #     choices=FILE_FORMAT_CHOICES,
-    #     widget=forms.RadioSelect,
-    #     required=True,
-    #     help_text="Select the format of your uploaded file"
-    # )
+    task_type = forms.ChoiceField(
+        choices=TASK_TYPE_CHOICES,
+        required=True,
+        widget=forms.Select(attrs={
+            'class': 'form-select form-select-lg',
+            'id': 'id_task_type'
+        }),
+        label='What would you like to do?'
+    )
     
     class Meta:
         model = TaskSubmission
@@ -57,3 +59,50 @@ class FileUploadForm(forms.ModelForm):
         help_texts = {
             'uploaded_file': 'Upload a CSV, Excel, JSON, or JSONL file containing your questions'
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Check if we have POST data with an task_type
+        if args and 'task_type' in args[0]:
+            task_type = args[0].get('task_type')
+            self._customize_for_mode(task_type)
+    
+    def _customize_for_mode(self, task_type):
+        """Customize the form based on the selected upload mode"""
+        if task_type == 'questions-to-kcs':
+            # Questions mode - keep defaults
+            self.fields['uploaded_file'].widget.attrs['accept'] = '.csv,.xlsx,.xls,.json,.jsonl'
+            self.fields['uploaded_file'].help_text = 'Upload a CSV, Excel, JSON, or JSONL file containing your questions'
+            
+        elif task_type == 'kcs-to-questions':
+            # KCs mode - customize for KC files
+            self.fields['uploaded_file'].widget.attrs['accept'] = '.txt'
+            self.fields['uploaded_file'].help_text = 'Upload a txt file containing your Learning Objectives (LOs)'
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        task_type = cleaned_data.get('task_type')
+        uploaded_file = cleaned_data.get('uploaded_file')
+        
+        if task_type and uploaded_file:
+            file_extension = uploaded_file.name.split('.')[-1].lower()
+            
+            # Validate file types based on mode
+            if task_type == 'questions-to-kcs':
+                allowed_extensions = ['csv', 'xlsx', 'xls', 'json', 'jsonl']
+                if file_extension not in allowed_extensions:
+                    raise forms.ValidationError(
+                        f'Invalid file type for questions upload. '
+                        f'Please upload a CSV, Excel, JSON, or JSONL file.'
+                    )
+                    
+            elif task_type == 'kcs-to-questions':
+                allowed_extensions = ['txt']
+                if file_extension not in allowed_extensions:
+                    raise forms.ValidationError(
+                        f'Invalid file type for learning objective upload. '
+                        f'Please upload a .txt file.'
+                    )
+        
+        return cleaned_data

@@ -92,18 +92,15 @@ def process_file(task_id: int):
 @login_required
 def upload_file(request):
     """Upload file"""
-    if request.method == 'POST':
+    if request.method == 'POST':        
         form = FileUploadForm(request.POST, request.FILES)
-        upload_mode = request.POST.get('upload_mode')
-        if upload_mode not in ['questions-to-kcs', 'kcs-to-questions']:
-            messages.error(request, f'Invalid task type: {upload_mode}')
-            return redirect('home')
+        
         if form.is_valid():
             teacher = get_object_or_404(TeacherUser, user=request.user)
             task = form.save(commit=False)
             task.teacher = teacher
-            task.task_type = upload_mode
             task.save()
+            print("TASK TYPE: ", task.task_type)
             
             # Save file in GCS
             local_path = task.uploaded_file.path
@@ -116,7 +113,7 @@ def upload_file(request):
             task.save()
             
             # Start Job
-            # process_file(task.id)
+            process_file(task.id)
             
             messages.success(request, f'File "{task.filename}" uploaded successfully! Processing has begun.')
             return redirect('task_status', task_id=task.id)

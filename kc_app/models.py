@@ -24,7 +24,7 @@ class TaskSubmission(models.Model):
         ('completed', 'Completed'),
         ('failed', 'Failed'),
     ]
-    TASK_TYPES = [
+    TASK_TYPE_CHOICES = [
         ('questions-to-kcs', 'KCGen'),
         ('kcs-to-questions', 'QuestionGen'),
     ]
@@ -34,7 +34,7 @@ class TaskSubmission(models.Model):
         upload_to='uploads/',
         validators=[FileExtensionValidator(allowed_extensions=['csv', 'xlsx', 'xls', 'json', 'jsonl'])]
     )
-    task_type = models.CharField(max_length=100, choices=TASK_TYPES, default="questions-to-kcs")
+    task_type = models.CharField(max_length=100, choices=TASK_TYPE_CHOICES, default="questions-to-kcs")
 
     gcs_input_blob = models.CharField(max_length=500, blank=True)   # e.g., "uploads/file123.json"
     gcs_json_blob = models.CharField(max_length=500, blank=True)    # e.g., "processed/file123_processed.jsonl"

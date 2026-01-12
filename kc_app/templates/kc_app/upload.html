@@ -16,12 +16,11 @@
         <div class="col-lg-8">
             <div class="card shadow">
                 <div class="card-body">
-                    <label for="uploadMode" class="form-label fw-bold fs-5">What would you like to do?</label>
-                    <select class="form-select form-select-lg" id="uploadMode">
-                        <option value="">-- Select an option --</option>
-                        <option value="questions-to-kcs">Upload questions and generate KCs</option>
-                        <option value="kcs-to-questions">Upload KCs and generate questions</option>
-                    </select>
+                    <label for="{{ form.task_type.id_for_label }}" class="form-label fw-bold fs-5">{{ form.task_type.label }}</label>
+                    {{ form.task_type }}
+                    {% if form.task_type.errors %}
+                        <div class="text-danger mt-2">{{ form.task_type.errors }}</div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -255,18 +254,31 @@ Line 3: sciqa-4389,Fill in the Blank,When forces ...,,,,balanced,...</pre>
                             </div>
                         </div>
 
-                        <!-- KCs to Questions Instructions (placeholder for future customization) -->
+                        <!-- KCs to Questions Instructions -->
                         <div id="kcs-to-questions-instructions" style="display: none;">
-                            <p class="text-muted">Upload your KC file to generate questions.</p>
+                            <p class="text-muted">Upload a file with learning objectivesto generate questions.</p>
+                            <h6>Text Format Requirements</h6>
+                            <p class="text-muted">
+                                A simple text file
+                            </p>
                             <h6 class="mt-3">Required Structure:</h6>
                             <ul class="small">
-                                <li>File should contain KC definitions</li>
-                                <li>Include KC identifiers and descriptions</li>
-                                <li>Supported formats: JSON, CSV, Excel</li>
+                                <li>Input should be a .txt file</li>
+                                <li>Each line should contain a learning objective</li>
                             </ul>
-                            <div class="alert alert-info">
-                                <i class="fas fa-info-circle me-2"></i>
-                                Detailed KC upload instructions coming soon!
+                            <h6 class="mt-3">Supported Formats:</h6>
+                            <ul class="small">
+                                <li>.txt</li>
+                            </ul>
+                            <h6 class="mt-3">Example</h6>
+                            <pre class="format-example">
+Row 1: | Explain how the structure of biological membranes influences selective permeability
+Row 2: | Describe the fundamental molecular and cellular features shared across all domains of life, which provide evidence of common ancestry
+Row 3: | Explain how invasive species affect ecosystem dynamics</pre>
+                            <div class="download-btn">
+                                <a href="https://storage.googleapis.com/kcluster-bucket/templates/example.txt" class="btn btn-outline-success btn-sm">
+                                    <i class="bi bi-download"></i> Download Text Template
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -294,9 +306,6 @@ Line 3: sciqa-4389,Fill in the Blank,When forces ...,,,,balanced,...</pre>
 
                         <form method="post" enctype="multipart/form-data" id="uploadForm">
                             {% csrf_token %}
-                            
-                            <!-- Hidden field to track upload mode -->
-                            <input type="hidden" name="upload_mode" id="uploadModeInput" value="">
 
                             <div class="mb-4">
                                 <label for="{{ form.uploaded_file.id_for_label }}" class="form-label fw-bold">Upload File</label>
@@ -350,15 +359,13 @@ Line 3: sciqa-4389,Fill in the Blank,When forces ...,,,,balanced,...</pre>
 
 <script>
 // Handle mode selection
-document.getElementById('uploadMode').addEventListener('change', function() {
+document.getElementById('{{ form.task_type.id_for_label }}').addEventListener('change', function() {
     const mode = this.value;
     const mainContent = document.getElementById('mainContent');
-    const uploadModeInput = document.getElementById('uploadModeInput');
     
     if (mode) {
         // Show main content
         mainContent.style.display = 'block';
-        uploadModeInput.value = mode;
         
         // Update content based on mode
         if (mode === 'questions-to-kcs') {
@@ -396,7 +403,7 @@ function updateContentForQuestionsToKCs() {
 
 function updateContentForKCsToQuestions() {
     // Update titles
-    document.getElementById('instructionsTitle').textContent = 'KC File Requirements';
+    document.getElementById('instructionsTitle').textContent = 'Learning Objective File Requirements';
     document.getElementById('uploadTitle').innerHTML = '<i class="fas fa-upload me-2"></i>Upload KCs to Generate Questions';
     document.getElementById('submitBtnText').textContent = 'Upload and Generate Questions';
     
