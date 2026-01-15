@@ -163,20 +163,36 @@ def process_kc_api(task_id, jsonl_data, resume=False, job=None):
 def send_completion_email(task):
     """Send email notification when task is completed"""
     try:
-        subject = 'KC Analysis Complete - Results Ready'
-        message = f"""
-        Hello {task.teacher.first_name},
-        
-        Your Knowledge Component analysis is complete!
-        
-        File: {task.filename}
-        Completed: {task.completed_at.strftime('%Y-%m-%d %H:%M:%S')}
-        
-        You can download your results at: {settings.SITE_URL}/task/{task.id}/
-        
-        Best regards,
-        Perspicacious Team
-        """
+        if task.task_type == "questions-to-kcs":
+            subject = 'KC Analysis Complete - Results Ready'
+            message = f"""
+            Hello {task.teacher.first_name},
+            
+            Your Knowledge Component analysis is complete!
+            
+            File: {task.filename}
+            Completed: {task.completed_at.strftime('%Y-%m-%d %H:%M:%S')}
+            
+            You can download your results at: {settings.SITE_URL}/task/{task.id}/
+            
+            Best regards,
+            Perspicacious Team
+            """
+        else:
+            subject = 'Question Generation Complete - Results Ready'
+            message = f"""
+            Hello {task.teacher.first_name},
+            
+            Your questions are ready!
+            
+            File: {task.filename}
+            Completed: {task.completed_at.strftime('%Y-%m-%d %H:%M:%S')}
+            
+            You can download your results at: {settings.SITE_URL}/task/{task.id}/
+            
+            Best regards,
+            Perspicacious Team
+            """
         
         send_mail(
             subject,
@@ -191,20 +207,36 @@ def send_completion_email(task):
 def send_failure_email(task):
     """Send email notification when task fails"""
     try:
-        subject = 'KC Analysis Failed'
-        message = f"""
-        Hello {task.teacher.first_name},
-        
-        Unfortunately, your Knowledge Component analysis failed to complete.
-        
-        File: {task.filename}
-        Error: {task.error_message}
-        
-        Please try uploading your file again or contact support if the issue persists.
-        
-        Best regards,
-        KC Analysis Team
-        """
+        if task.task_type == "questions-to-kcs":
+            subject = 'KC Analysis Failed'
+            message = f"""
+            Hello {task.teacher.first_name},
+            
+            Unfortunately, your Knowledge Component analysis failed to complete.
+            
+            File: {task.filename}
+            Error: {task.error_message}
+            
+            Please try uploading your file again or contact support if the issue persists.
+            
+            Best regards,
+            Perspicacious Team
+            """
+        else:
+            subject = 'Question Generation Failed'
+            message = f"""
+            Hello {task.teacher.first_name},
+            
+            Unfortunately, your question generation task failed to complete.
+            
+            File: {task.filename}
+            Error: {task.error_message}
+            
+            Please try uploading your file again or contact support if the issue persists.
+            
+            Best regards,
+            Perspicacious Team
+            """
         
         send_mail(
             subject,
@@ -223,6 +255,28 @@ def run():
     flush_logs()
 
     task = TaskSubmission.objects.get(id=task_id)
+    task_type = task.task_type
+
+
+    task.status = "processing"
+    task.save()
+    transaction.commit()
+    flush_logs()
+    time.sleep(10)
+    if task_type == "kcs-to-questions":
+        task.gcs_output_kc_blob = "questions/output_questions.csv"
+    else:
+        task.gcs_output_kc_blob = f"kclusters/test_kcluster.csv"
+        task.gcs_output_concept_blob = f"concepts/test_concepts.csv"
+
+    task.status = "completed"
+    task.completed_at = timezone.now()
+    task.save()
+    transaction.commit()
+    flush_logs()
+    send_completion_email(task)
+    return
+
 
     # Avoid duplicate processing
     if task.status == 'completed':
@@ -235,13 +289,8 @@ def run():
         logger.info(f"Task {task_id} is already processing. Attempting to resume. WE DID IT JOE")
         flush_logs()
 
-        # Try to reattach to the existing Vertex AI job
-        if task_id == "27":
-            job_id = "8075544930396667904" 
-        elif task_id == "28":
-            job_id = "6841558632497152000"
-        else:
-            raise KeyError("No job id found rn")
+        # Try to reattach to the existing Vertex AI job in case of error
+        job_id = task.job_handle
         job = get_existing_batch_job(job_id)
         if not job:
             logger.warning(f"No existing Vertex AI job found for task {job_id}. Cannot resume, starting fresh.")

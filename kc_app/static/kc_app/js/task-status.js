@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     case 'completed':
                         alertClass = 'alert-success';
                         icon = 'fas fa-check-circle';
-                        message = 'Completed! Your KC analysis is ready.';
+                        message = 'Completed! Your results are ready.';
                         // Reload page to show download buttons
                         setTimeout(() => location.reload(), 1000);
                         break;

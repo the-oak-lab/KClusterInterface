@@ -11,20 +11,23 @@
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Mode Selection -->
-    <div class="row justify-content-center mt-4">
-        <div class="col-lg-8">
-            <div class="card shadow">
-                <div class="card-body">
-                    <label for="{{ form.task_type.id_for_label }}" class="form-label fw-bold fs-5">{{ form.task_type.label }}</label>
-                    {{ form.task_type }}
-                    {% if form.task_type.errors %}
-                        <div class="text-danger mt-2">{{ form.task_type.errors }}</div>
-                    {% endif %}
+    <form method="post" enctype="multipart/form-data" id="uploadForm">
+        {% csrf_token %}
+        
+        <!-- Mode Selection -->
+        <div class="row justify-content-center mt-4">
+            <div class="col-lg-8">
+                <div class="card shadow">
+                    <div class="card-body">
+                        <label for="{{ form.task_type.id_for_label }}" class="form-label fw-bold fs-5">{{ form.task_type.label }}</label>
+                        {{ form.task_type }}
+                        {% if form.task_type.errors %}
+                            <div class="text-danger mt-2">{{ form.task_type.errors }}</div>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
     <!-- Main Content Area (hidden until selection is made) -->
     <div id="mainContent" style="display: none;">
@@ -256,7 +259,7 @@ Line 3: sciqa-4389,Fill in the Blank,When forces ...,,,,balanced,...</pre>
 
                         <!-- KCs to Questions Instructions -->
                         <div id="kcs-to-questions-instructions" style="display: none;">
-                            <p class="text-muted">Upload a file with learning objectivesto generate questions.</p>
+                            <p class="text-muted">Upload a file with learning objectives to generate questions.</p>
                             <h6>Text Format Requirements</h6>
                             <p class="text-muted">
                                 A simple text file
@@ -304,10 +307,8 @@ Row 3: | Explain how invasive species affect ecosystem dynamics</pre>
                             </ul>
                         </div>
 
-                        <form method="post" enctype="multipart/form-data" id="uploadForm">
-                            {% csrf_token %}
-
-                            <div class="mb-4">
+                        <!-- File upload section continues here -->
+                        <div class="mb-4">
                                 <label for="{{ form.uploaded_file.id_for_label }}" class="form-label fw-bold">Upload File</label>
                                 <div class="file-upload-area" id="fileUploadArea">
                                     <button type="button" class="remove-file" id="removeFileBtn">
@@ -327,7 +328,7 @@ Row 3: | Explain how invasive species affect ecosystem dynamics</pre>
                                     
                                     {{ form.uploaded_file }}
                                 </div>
-                                <div class="form-text mt-2">{{ form.uploaded_file.help_text }}</div>
+                                <div id="help_text" class="form-text mt-2">{{ form.uploaded_file.help_text }}</div>
                             </div>
 
                             <div class="alert alert-danger" id="errorAlert" style="display: none;">
@@ -399,11 +400,14 @@ function updateContentForQuestionsToKCs() {
             <li><i class="fas fa-file-code text-success me-2"></i>JSONL files (.jsonl)</li>
         </ul>
     `;
+
+    document.getElementById('help_text').innerHTML = "Upload a CSV, Excel, JSON, or JSONL file containing your questions"
+    document.getElementById('id_uploaded_file').setAttribute('accept', '.csv,.xlsx,.xls,.json,.jsonl');
 }
 
 function updateContentForKCsToQuestions() {
     // Update titles
-    document.getElementById('instructionsTitle').textContent = 'Learning Objective File Requirements';
+    document.getElementById('instructionsTitle').textContent = 'KC File Requirements';
     document.getElementById('uploadTitle').innerHTML = '<i class="fas fa-upload me-2"></i>Upload KCs to Generate Questions';
     document.getElementById('submitBtnText').textContent = 'Upload and Generate Questions';
     
@@ -415,11 +419,12 @@ function updateContentForKCsToQuestions() {
     document.getElementById('supportedFormats').innerHTML = `
         <h6>Supported File Formats:</h6>
         <ul class="list-unstyled">
-            <li><i class="fas fa-file-excel text-success me-2"></i>Excel files (.xlsx, .xls)</li>
-            <li><i class="fas fa-file-csv text-success me-2"></i>CSV files (.csv)</li>
-            <li><i class="fas fa-file-code text-success me-2"></i>JSON files (.json)</li>
+            <li><i class="fas fa-file-text text-success me-2"></i>Text files (.txt)</li>
         </ul>
     `;
+
+    document.getElementById('help_text').innerHTML = "Upload a txt file containing your Learning Objectives (LOs)"
+    document.getElementById('id_uploaded_file').setAttribute('accept', '.txt');
 }
 </script>
 {% endblock %}

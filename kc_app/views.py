@@ -136,7 +136,7 @@ def download_results(request, task_id, result_type):
     teacher = get_object_or_404(TeacherUser, user=request.user)
     task = get_object_or_404(TaskSubmission, id=task_id, teacher=teacher)
     
-    if task.status != 'completed' or not task.gcs_output_concept_blob:
+    if task.status != 'completed' or not task.gcs_output_kc_blob:
         messages.error(request, 'Results are not available for download.')
         return redirect('task_status', task_id=task_id)
     

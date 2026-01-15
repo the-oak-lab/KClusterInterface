@@ -33,7 +33,7 @@
                             {% if task.status == 'completed' %}
                                 <div class="alert alert-success">
                                     <i class="fas fa-check-circle me-2"></i>
-                                    <strong>Completed!</strong> Your KC analysis is ready.
+                                    <strong>Completed!</strong> Your results are ready.
                                 </div>
                             {% elif task.status == 'processing' %}
                                 <div class="alert alert-warning">
@@ -117,11 +117,18 @@
                     </a>
                     
                     {% if task.status == 'completed' and task.gcs_output_concept_blob %}
-                        <a href="{% url 'download_results' task.id 'concepts' %}" class="btn btn-success">
+                        <!-- <a href="{% url 'download_results' task.id 'concepts' %}" class="btn btn-success">
                             <i class="fas fa-download me-2"></i>Download Concepts
-                        </a>
+                        </a> -->
                         <a href="{% url 'download_results' task.id 'kcs' %}" class="btn btn-success">
                             <i class="fas fa-download me-2"></i>Download KCs
+                        </a>
+                        <a href="{% url 'next_steps' task.id %}" class="btn btn-primary">
+                            <i class="fas fa-arrow-right me-2"></i>Next Steps
+                        </a>
+                    {% elif task.status == 'completed' and task.task_type == "kcs-to-questions" %}
+                        <a href="{% url 'download_results' task.id 'kcs' %}" class="btn btn-success">
+                            <i class="fas fa-download me-2"></i>Download Questions
                         </a>
                         <a href="{% url 'next_steps' task.id %}" class="btn btn-primary">
                             <i class="fas fa-arrow-right me-2"></i>Next Steps

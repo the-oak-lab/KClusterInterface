@@ -17,11 +17,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!file) return;
 
         // Validate file type
-        const allowedTypes = ['.csv', '.xlsx', '.xls', '.json', '.jsonl'];
+        const allowedTypes = ['.csv', '.xlsx', '.xls', '.json', '.jsonl', '.txt'];
         const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
         
         if (!allowedTypes.includes(fileExtension)) {
-            showError('Please select a valid file format (CSV, Excel, JSON, or JSONL)');
+            showError('Please select a valid file format (CSV, Excel, JSON, JSONL, or TXT)');
             return;
         }
 
@@ -104,22 +104,39 @@ document.addEventListener('DOMContentLoaded', function() {
     // Form submission handler
     document.getElementById('uploadForm').addEventListener('submit', function(e) {
         
+        // Check if task type is selected - try multiple ways to find it
+        const taskTypeSelect = document.getElementById('id_task_type') || 
+                              document.querySelector('select[name="task_type"]') ||
+                              document.querySelector('#id_task_type');
+        
+        console.log('Task type element:', taskTypeSelect);
+        console.log('Task type value:', taskTypeSelect ? taskTypeSelect.value : 'element not found');
+        
+        if (!taskTypeSelect) {
+            e.preventDefault();
+            showError('Task type field not found - please refresh the page');
+            return false;
+        }
+        
+        if (!taskTypeSelect.value || taskTypeSelect.value === '') {
+            e.preventDefault();
+            showError('Please select a task type');
+            // Scroll to top to show the dropdown
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return false;
+        }
+        
         // Check if file is selected
         if (!fileInput.files || fileInput.files.length === 0) {
+            e.preventDefault();
             showError('Please select a file to upload');
-            return;
+            return false;
         }
 
-        // Check if file format is selected
-        // const fileFormat = document.querySelector('input[name="file_format"]:checked');
-        // if (!fileFormat) {
-        //     showError('Please select a file format');
-        //     return;
-        // }
-
-        // If we get here, everything is valid
-        alert('Form is ready to submit! File: ' + fileInput.files[0].name);
+        // If we get here, everything is valid - allow form to submit normally
+        console.log('Form validation passed! File: ' + fileInput.files[0].name + ', Task type: ' + taskTypeSelect.value);
         
-        // In real Django app, remove the e.preventDefault() above to allow actual submission
+        // Form will submit normally
+        return true;
     });
 });

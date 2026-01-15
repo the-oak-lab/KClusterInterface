@@ -14,14 +14,15 @@
             <div class="card-body">
                 <div class="alert alert-success mb-4">
                     <i class="fas fa-check-circle me-2"></i>
-                    <strong>Congratulations!</strong> Your Knowledge Component analysis is complete.
+                    <strong>Congratulations!</strong> Your {{ task.get_task_type_display }} task is complete.
                 </div>
 
                 <div class="row mb-4">
                     <div class="col-md-6">
-                        <h6><i class="fas fa-info-circle me-2"></i>Analysis Summary</h6>
+                        <h6><i class="fas fa-info-circle me-2"></i>Task Summary</h6>
                         <ul class="list-unstyled">
                             <li><strong>File:</strong> {{ task.filename }}</li>
+                            <li><strong>Task Type:</strong> {{ task.get_task_type_display }}</li>
                             <li><strong>Completed:</strong> {{ task.completed_at|date:"M d, Y H:i" }}</li>
                             <li><strong>Status:</strong> <span class="badge bg-success">Completed</span></li>
                         </ul>
@@ -29,15 +30,23 @@
                     <div class="col-md-6">
                         <h6><i class="fas fa-download me-2"></i>Available Downloads</h6>
                         <div class="d-grid gap-2">
-                            <a href="{% url 'download_results' task.id 'concepts' %}" class="btn btn-success">
-                                <i class="fas fa-file-csv me-2"></i>Download Concepts (CSV)
-                            </a>
-                            <a href="{% url 'download_results' task.id 'kcs' %}" class="btn btn-success">
-                                <i class="fas fa-file-csv me-2"></i>Download KC Results (CSV)
-                            </a>
-                            {% if kc_model.model_file %}
-                                <a href="{{ kc_model.model_file.url }}" class="btn btn-info" download>
-                                    <i class="fas fa-brain me-2"></i>Download KC Model
+                            {% if task.task_type == 'questions-to-kcs' %}
+                                <!-- KC Analysis Downloads -->
+                                <!-- <a href="{% url 'download_results' task.id 'concepts' %}" class="btn btn-success">
+                                    <i class="fas fa-file-csv me-2"></i>Download Concepts (CSV)
+                                </a> -->
+                                <a href="{% url 'download_results' task.id 'kcs' %}" class="btn btn-success">
+                                    <i class="fas fa-file-csv me-2"></i>Download KC Results (CSV)
+                                </a>
+                                {% if kc_model.model_file %}
+                                    <a href="{{ kc_model.model_file.url }}" class="btn btn-info" download>
+                                        <i class="fas fa-brain me-2"></i>Download KC Model
+                                    </a>
+                                {% endif %}
+                            {% elif task.task_type == 'kcs-to-questions' %}
+                                <!-- Question Generation Downloads -->
+                                <a href="{% url 'download_results' task.id 'questions' %}" class="btn btn-success">
+                                    <i class="fas fa-file-download me-2"></i>Download Generated Questions
                                 </a>
                             {% endif %}
                         </div>
@@ -52,16 +61,20 @@
                 </div>
 
                 <div class="row g-4">
-                    <!-- Option 1: Analyze More Questions -->
+                    <!-- Option 1: Run Another Task -->
                     <div class="col-lg-4">
                         <div class="card h-100 border-primary">
                             <div class="card-body text-center">
                                 <div class="mb-3">
                                     <i class="fas fa-plus-circle fa-3x text-primary"></i>
                                 </div>
-                                <h6 class="card-title">Analyze More Questions</h6>
+                                <h6 class="card-title">Run Another Task</h6>
                                 <p class="card-text small">
-                                    Upload another set of questions for KC analysis.
+                                    {% if task.task_type == 'questions-to-kcs' %}
+                                        Upload another set of questions for KC analysis or generate questions from learning objectives.
+                                    {% else %}
+                                        Upload more learning objectives to generate questions or analyze questions for KCs.
+                                    {% endif %}
                                 </p>
                                 <a href="{% url 'upload_file' %}" class="btn btn-primary">
                                     <i class="fas fa-upload me-2"></i>Upload New File
@@ -70,14 +83,15 @@
                         </div>
                     </div>
 
-                    <!-- Option 2: Integration with DataShop -->
+                    <!-- Option 2: Integration with DataShop (only for KC analysis) -->
+                    {% if task.task_type == 'questions-to-kcs' %}
                     <div class="col-lg-4">
                         <div class="card h-100 border-info">
                             <div class="card-body text-center">
                                 <div class="mb-3">
                                     <i class="fas fa-database fa-3x text-info"></i>
                                 </div>
-                                <h6 class="card-title"><strong>**Coming Soon**</strong>DataShop Integration</h6>
+                                <h6 class="card-title"><strong>**Coming Soon**</strong> DataShop Integration</h6>
                                 <p class="card-text small">
                                     Import your KC results into DataShop for further analysis.
                                 </p>
@@ -87,6 +101,7 @@
                             </div>
                         </div>
                     </div>
+                    {% endif %}
 
                     <!-- Option 3: View Dashboard -->
                     <div class="col-lg-4">
@@ -110,27 +125,50 @@
                 <!-- Usage Tips -->
                 <div class="card mt-4">
                     <div class="card-header">
-                        <h6 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Tips for Using Your KC Results</h6>
+                        <h6 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Tips for Using Your Results</h6>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6>Understanding Your Results</h6>
-                                <ul class="small">
-                                    <li>Each question now has an identified Knowledge Component</li>
-                                    <li>KC labels help organize questions by cognitive skills</li>
-                                    <li>Use KCs to track student learning progression</li>
-                                </ul>
+                        {% if task.task_type == 'questions-to-kcs' %}
+                            <!-- Tips for KC Analysis -->
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Understanding Your Results</h6>
+                                    <ul class="small">
+                                        <li>Each question now has an identified Knowledge Component</li>
+                                        <li>KC labels help organize questions by cognitive skills</li>
+                                        <li>Use KCs to track student learning progression</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Best Practices</h6>
+                                    <ul class="small">
+                                        <li>Review KC assignments for accuracy</li>
+                                        <li>Group questions by KC for targeted practice</li>
+                                        <li>Monitor student performance per KC</li>
+                                    </ul>
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <h6>Best Practices</h6>
-                                <ul class="small">
-                                    <li>Review KC assignments for accuracy</li>
-                                    <li>Group questions by KC for targeted practice</li>
-                                    <li>Monitor student performance per KC</li>
-                                </ul>
+                        {% elif task.task_type == 'kcs-to-questions' %}
+                            <!-- Tips for Question Generation -->
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Understanding Your Results</h6>
+                                    <ul class="small">
+                                        <li>Questions have been generated based on your learning objectives</li>
+                                        <li>Each question is designed to assess the specified learning outcome</li>
+                                        <li>Review questions for clarity and appropriateness</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Best Practices</h6>
+                                    <ul class="small">
+                                        <li>Review and edit generated questions as needed</li>
+                                        <li>Validate questions with subject matter experts</li>
+                                        <li>Use questions in formative and summative assessments</li>
+                                    </ul>
+                                </div>
                             </div>
-                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -138,7 +176,8 @@
     </div>
 </div>
 
-<!-- DataShop Integration Modal -->
+{% if task.task_type == 'questions-to-kcs' %}
+<!-- DataShop Integration Modal (only for KC analysis) -->
 <div class="modal fade" id="dataShopModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -186,13 +225,16 @@
         </div>
     </div>
 </div>
+{% endif %}
 {% endblock %}
 
 {% block scripts %}
+{% if task.task_type == 'questions-to-kcs' %}
 <script>
 function showDataShopModal() {
     const modal = new bootstrap.Modal(document.getElementById('dataShopModal'));
     modal.show();
 }
 </script>
+{% endif %}
 {% endblock %}

@@ -31,31 +31,39 @@ class TeacherRegistrationForm(UserCreationForm):
         return user
 
 class FileUploadForm(forms.ModelForm):
-    TASK_TYPE_CHOICES = [
-        ('', '-- Select an option --'),
-        ('questions-to-kcs', 'Upload questions and receive KCs'),
-        ('kcs-to-questions', 'Upload Learning Objectives and receive questions'),
-    ]
+    # TASK_TYPE_CHOICES = [
+    #     ('', '-- Select an option --'),
+    #     ('questions-to-kcs', 'Upload questions and receive KCs'),
+    #     ('kcs-to-questions', 'Upload Learning Objectives and receive questions'),
+    # ]
     
-    task_type = forms.ChoiceField(
-        choices=TASK_TYPE_CHOICES,
-        required=True,
-        widget=forms.Select(attrs={
-            'class': 'form-select form-select-lg',
-            'id': 'id_task_type'
-        }),
-        label='What would you like to do?'
-    )
+    # task_type = forms.ChoiceField(
+    #     choices=TASK_TYPE_CHOICES,
+    #     required=True,
+    #     widget=forms.Select(attrs={
+    #         'class': 'form-select form-select-lg',
+    #         'id': 'id_task_type'
+    #     }),
+    #     label='What would you like to do?'
+    # )
     
     class Meta:
         model = TaskSubmission
-        fields = ['uploaded_file']
+        fields = ['task_type', 'uploaded_file']
         widgets = {
+            'task_type': forms.Select(attrs={
+            'class': 'form-select form-select-lg',
+            'id': 'id_task_type',
+            }),
             'uploaded_file': forms.FileInput(attrs={
                 'class': 'form-control',
                 'accept': '.csv,.xlsx,.xls,.json,.jsonl'
             })
         }
+        labels = {
+            'task_type': 'What would you like to do?',
+        }
+
         help_texts = {
             'uploaded_file': 'Upload a CSV, Excel, JSON, or JSONL file containing your questions'
         }
@@ -87,6 +95,7 @@ class FileUploadForm(forms.ModelForm):
         
         if task_type and uploaded_file:
             file_extension = uploaded_file.name.split('.')[-1].lower()
+            print("TASK TYPE IS: ", task_type)
             
             # Validate file types based on mode
             if task_type == 'questions-to-kcs':

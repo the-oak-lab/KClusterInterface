@@ -25,16 +25,17 @@ class TaskSubmission(models.Model):
         ('failed', 'Failed'),
     ]
     TASK_TYPE_CHOICES = [
-        ('questions-to-kcs', 'KCGen'),
-        ('kcs-to-questions', 'QuestionGen'),
+        ('', '-- Select an option --'),
+        ('kcs-to-questions', 'Upload Learning Objectives and Receive Questions'),
+        ('questions-to-kcs', 'Upload Questions and Receive KCs'),
     ]
     
     teacher = models.ForeignKey(TeacherUser, on_delete=models.CASCADE)
     uploaded_file = models.FileField(
         upload_to='uploads/',
-        validators=[FileExtensionValidator(allowed_extensions=['csv', 'xlsx', 'xls', 'json', 'jsonl'])]
+        # validators=[FileExtensionValidator(allowed_extensions=['csv', 'xlsx', 'xls', 'json', 'jsonl'])] # handled by clean function
     )
-    task_type = models.CharField(max_length=100, choices=TASK_TYPE_CHOICES, default="questions-to-kcs")
+    task_type = models.CharField(max_length=100, choices=TASK_TYPE_CHOICES, default="")
 
     gcs_input_blob = models.CharField(max_length=500, blank=True)   # e.g., "uploads/file123.json"
     gcs_json_blob = models.CharField(max_length=500, blank=True)    # e.g., "processed/file123_processed.jsonl"
